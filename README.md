@@ -5,9 +5,11 @@ This project is in progress
 Gantt management with drag and drop tasks and groups
 
 ## How to start
+```
 Npm install
-Npm run dev
 
+Npm run dev
+```
 
 ## Stack
 ### Front
