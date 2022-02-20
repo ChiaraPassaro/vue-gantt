@@ -1,11 +1,11 @@
-<script setup xmlns:input="http://www.w3.org/1999/html">
+<script setup>
 // This starter template is using Vue 3 <script setup> SFCs
 // Check out https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup
 </script>
 
 <template>
   <div
-      :style="`
+    :style="`
         --width-day:${configStyles.dayWidthEm * configStyles.defaultPx}px;
         --row-height: ${configStyles.rowHeightRem}rem;
         --padding-row:${configStyles.paddingRow}px;
@@ -13,101 +13,142 @@
         --drag-color:${taskProps.dragColor};
         --padding-top-group: ${configStyles.paddingTopGroup}em;
        `"
-      class="container">
+    class="container"
+  >
     <div class="gantt">
       <!--Left Column-->
       <div class="gantt__left">
         <div class="gantt__menu">
-          <h1 class="gantt__menu__logo">Gantt title</h1>
+          <h1 class="gantt__menu__logo">
+            Gantt title
+          </h1>
           <button
-              class="btn btn--primary"
-              @click="taskModalAdd"
-          >+ task
+            class="btn btn--primary"
+            @click="taskModalAdd"
+          >
+            + task
           </button>
         </div>
-        <ul v-if="tasks" class="gantt__left__wrapper">
-          <li v-for="(group, i) in tasks" :key="group.groupCode" class="gantt__left__bucket">
-            <h2 class="gantt__left__title-group">{{ group.name }}
+        <ul
+          v-if="tasks"
+          class="gantt__left__wrapper"
+        >
+          <li
+            v-for="(group) in tasks"
+            :key="group.groupCode"
+            class="gantt__left__bucket"
+          >
+            <h2 class="gantt__left__title-group">
+              {{ group.name }}
               <font-awesome-icon
-                  v-if="thisGroupOpen(group.groupCode)"
-                  :icon="menuLeft.angleUp"
-                  @click="closeGroup(group.groupCode)"/>
+                v-if="thisGroupOpen(group.groupCode)"
+                :icon="menuLeft.angleUp"
+                @click="closeGroup(group.groupCode)"
+              />
               <font-awesome-icon
-                  v-if="!thisGroupOpen(group.groupCode)"
-                  :icon="menuLeft.angleDown"
-                  @click="closeGroup(group.groupCode)"/>
+                v-if="!thisGroupOpen(group.groupCode)"
+                :icon="menuLeft.angleDown"
+                @click="closeGroup(group.groupCode)"
+              />
             </h2>
             <!--List tasks-->
-            <ul v-if="group.tasks.length > 0 && thisGroupOpen(group.groupCode)" class="gantt__left__tasks">
+            <ul
+              v-if="group.tasks.length > 0 && thisGroupOpen(group.groupCode)"
+              class="gantt__left__tasks"
+            >
               <!--Single task name draggable-->
               <li
-                  v-for="(task, k) in group.tasks"
-                  :key="task.rank"
-                  :data-rank="task.rank"
-                  class="gantt__left__row"
-                  draggable="true"
-                  @dragstart="startDrag($event, k, task.rank)">
+                v-for="(task, k) in group.tasks"
+                :key="task.rank"
+                :data-rank="task.rank"
+                class="gantt__left__row"
+                draggable="true"
+                @dragstart="startDrag($event, k, task.rank)"
+              >
                 <div
-                    v-if="k === 0"
-                    class="drag-prev"
-                    @dragleave="leaveDropZone($event, k)"
-                    @dragover="allowDrop($event, k)"
-                    @drop="onDrop($event, k, task.rank, 'prev')"
-                    @dragenter.prevent>
-                </div>
+                  v-if="k === 0"
+                  class="drag-prev"
+                  @dragleave="leaveDropZone($event, k)"
+                  @dragover="allowDrop($event, k)"
+                  @drop="onDrop($event, k, task.rank, 'prev')"
+                  @dragenter.prevent
+                />
                 <div
-                    :class="(menuLeft.activeTask === task.rank) ? 'active' : ''"
-                    class="gantt__left__row__title">
+                  :class="(menuLeft.activeTask === task.rank) ? 'active' : ''"
+                  class="gantt__left__row__title"
+                >
                   <h3>
                     {{ task.name }} | {{ task.rank }}
                   </h3>
                   <ul class="gantt__left__row__title__icons">
                     <li>
-                      <font-awesome-icon :icon="menuLeft.pen" @click="openModalModify(k, task.groupCode)"/>
+                      <font-awesome-icon
+                        :icon="menuLeft.pen"
+                        @click="openModalModify(k, task.groupCode)"
+                      />
                     </li>
                     <li>
                       <font-awesome-icon
-                          :icon="menuLeft.trash"
-                          @click="removeTask(task, task.groupCode)"/>
+                        :icon="menuLeft.trash"
+                        @click="removeTask(task, task.groupCode)"
+                      />
                     </li>
                   </ul>
                 </div>
                 <div
-                    class="drag-next"
-                    @dragleave="leaveDropZone($event)"
-                    @dragover="allowDrop($event)"
-                    @drop="onDrop($event, k, task.rank, 'next')"
-                    @dragenter.prevent
-                >
-                </div>
+                  class="drag-next"
+                  @dragleave="leaveDropZone($event)"
+                  @dragover="allowDrop($event)"
+                  @drop="onDrop($event, k, task.rank, 'next')"
+                  @dragenter.prevent
+                />
               </li>
               <!--/Single task name draggable-->
             </ul>
             <!--/List tasks-->
           </li>
-
         </ul>
       </div>
       <!--/Left Column-->
 
       <!--Right Column-->
-      <div ref="container" class="gantt__right">
-        <div :style="`--margin-now:${offsetNow}`" class="now"></div>
+      <div
+        ref="container"
+        class="gantt__right"
+      >
+        <div
+          :style="`--margin-now:${offsetNow}`"
+          class="now"
+        />
         <div class="year">
           <div class="months">
             <!--Date Labels-->
-            <div v-if="configDate.dates" class="months__row">
-              <div v-for="month in configDate.dates" :key="month.month+month.year" class="month">
+            <div
+              v-if="configDate.dates"
+              class="months__row"
+            >
+              <div
+                v-for="month in configDate.dates"
+                :key="month.month+month.year"
+                class="month"
+              >
                 <div class="month__label">
-                  <div :id="`${month.month}-${month.year}`" class="labels_months_month">{{ month.month }} {{
+                  <div
+                    :id="`${month.month}-${month.year}`"
+                    class="labels_months_month"
+                  >
+                    {{ month.month }} {{
                       month.year
                     }}
                   </div>
                 </div>
                 <div class="month__days">
                   <div
-                      v-for="day in month.days"
-                      :key="day+month" class="day">{{ day }}
+                    v-for="day in month.days"
+                    :key="day+month"
+                    class="day"
+                  >
+                    {{ day }}
                   </div>
                 </div>
               </div>
@@ -115,68 +156,69 @@
             <!--Tasks Row-->
             <div v-if="tasks">
               <div
-                  v-for="(group, i) in tasks"
-                  :key="group.groupCode"
-                  :style="`
+                v-for="(group) in tasks"
+                :key="group.groupCode"
+                :style="`
                     --width-group: ${widthGroup(group.groupCode)};
                     --left-group: ${leftGroup(group.groupCode)};
                     --bg-group: ${configStyles.bgGroup};
                    ${thisGroupOpen(group.groupCode) ? '' : 'padding-bottom: 0;'}`"
 
-                  class="tasks__row__group">
+                class="tasks__row__group"
+              >
                 <div class="tasks__row__group__title">
                   <h4>{{ group.name }}</h4>
                 </div>
                 <!--Single Task-->
                 <div
-                    v-for="(task, k) in group.tasks"
-                    v-if="thisGroupOpen(group.groupCode)"
-                    :key="task.rank"
-                    class="tasks__row__task"
+                  v-for="(task) in group.tasks"
+                  v-if="thisGroupOpen(group.groupCode)"
+                  :key="task.rank"
+                  class="tasks__row__task"
                 >
                   <Task
-                      :background-color="taskProps.backgroundColor"
-                      :border-radius="taskProps.borderRadius"
-                      :font-size="0.9"
-                      :index="task.rank"
-                      :margin-left="marginLeft(task.offset)"
-                      :min-width="minWidth"
-                      :name="task.name"
-                      :text-color="taskProps.textColor"
-                      :width="widthTask(task)"
-                      @update-date="setTaskData(task, $event, null, null)"
-                      @update-margin="task.offset = $event"
-                      @handle-right-to-left="setTaskData(task, $event, 'right', 'left')"
-                      @handle-right-to-right="setTaskData(task,  $event,'right', 'right')"
-                      @handle-left-to-left="setTaskData(task, $event, 'left', 'left')"
-                      @handle-left-to-right="setTaskData(task,  $event,'left', 'right')"
-                      @end-update-task="activateTask(false)"
-                      @init-update-task="activateTask($event)"
-                  >
-                  </Task>
+                    :background-color="taskProps.backgroundColor"
+                    :border-radius="taskProps.borderRadius"
+                    :font-size="0.9"
+                    :index="task.rank"
+                    :margin-left="marginLeft(task.offset)"
+                    :min-width="minWidth"
+                    :name="task.name"
+                    :text-color="taskProps.textColor"
+                    :width="widthTask(task)"
+                    @update-date="setTaskData(task, $event, null, null)"
+                    @update-margin="task.offset = $event"
+                    @handle-right-to-left="setTaskData(task, $event, 'right', 'left')"
+                    @handle-right-to-right="setTaskData(task, $event,'right', 'right')"
+                    @handle-left-to-left="setTaskData(task, $event, 'left', 'left')"
+                    @handle-left-to-right="setTaskData(task, $event,'left', 'right')"
+                    @end-update-task="activateTask(false)"
+                    @init-update-task="activateTask($event)"
+                  />
                   <!--/Single Task-->
                 </div>
               </div>
               <!--/Tasks Row-->
               <!--Day Lines-->
               <div
-                  v-for="(day, index) in days"
-                  :key="day"
-                  :style="`left: ${configStyles.defaultPx * configStyles.dayWidthEm * index}px`"
-                  class="months__overlay__day-line"
-              >
-              </div>
+                v-for="(day, index) in days"
+                :key="day"
+                :style="`left: ${configStyles.defaultPx * configStyles.dayWidthEm * index}px`"
+                class="months__overlay__day-line"
+              />
               <!--/Day Lines-->
             </div>
           </div>
         </div>
-
       </div>
       <!--/Right Column-->
     </div>
     <!--Modals-->
     <!--add months back-->
-    <div v-if="modals.backMonths" class="modal">
+    <div
+      v-if="modals.backMonths"
+      class="modal"
+    >
       <div class="modal__inner">
         <header>
           <h2>Vuoi cambiare la data di partenza del progetto?</h2>
@@ -184,22 +226,26 @@
         <div class="content">
           <div class="button-group flex">
             <button
-                class="btn btn--primary"
-                @click="changeStartGantt">
+              class="btn btn--primary"
+              @click="changeStartGantt"
+            >
               Sì
             </button>
             <button
-                class="btn btn--alert"
-                @click="modals.backMonths = false">
+              class="btn btn--alert"
+              @click="modals.backMonths = false"
+            >
               No
             </button>
           </div>
         </div>
       </div>
-
     </div>
     <!--mod task-->
-    <div v-if="modals.taskModalMod" class="modal">
+    <div
+      v-if="modals.taskModalMod"
+      class="modal"
+    >
       <div class="modal__inner">
         <header>
           <h2>Modifica il task: {{ tasks[modals.groupTaskMod.code].tasks[modals.indexTaskMod].name }}</h2>
@@ -208,43 +254,57 @@
           <div class="input-group">
             <label class="typo__label">Tagging</label>
             <VueMultiselect
-                v-model="modals.groupTaskMod"
-                :multiple="false"
-                :options="groups"
-                :taggable="true"
-                label="name"
-                placeholder="Type to search or add tag"
-                tag-placeholder="Add this as new tag"
-                track-by="code"
-                @tag="addTag"
+              v-model="modals.groupTaskMod"
+              :multiple="false"
+              :options="groups"
+              :taggable="true"
+              label="name"
+              placeholder="Type to search or add tag"
+              tag-placeholder="Add this as new tag"
+              track-by="code"
+              @tag="addTag"
             />
           </div>
           <div class="input-group">
-            <input id="nametask" v-model="tasks[modals.groupTaskMod.code].tasks[modals.indexTaskMod].name"
-                   name="nametask"
-                   placeholder="Titolo task" type="text">
+            <input
+              id="nametask"
+              v-model="tasks[modals.groupTaskMod.code].tasks[modals.indexTaskMod].name"
+              name="nametask"
+              placeholder="Titolo task"
+              type="text"
+            >
           </div>
           <div class="input-group flex">
             <div class="col">
-              <input id="startDate" v-model="tasks[modals.groupTaskMod.code].tasks[modals.indexTaskMod].startDate"
-                     name="startDate" type="date">
+              <input
+                id="startDate"
+                v-model="tasks[modals.groupTaskMod.code].tasks[modals.indexTaskMod].startDate"
+                name="startDate"
+                type="date"
+              >
             </div>
             <div class="col">
-              <input id="endDate" v-model="tasks[modals.groupTaskMod.code].tasks[modals.indexTaskMod].endDate"
-                     name="endDate" type="date">
+              <input
+                id="endDate"
+                v-model="tasks[modals.groupTaskMod.code].tasks[modals.indexTaskMod].endDate"
+                name="endDate"
+                type="date"
+              >
             </div>
           </div>
         </div>
         <footer>
           <div class="button-group flex">
             <button
-                class="btn btn--primary"
-                @click="saveTask(tasks[modals.groupTaskMod.code].tasks[modals.indexTaskMod], modals.groupTaskMod.code)">
+              class="btn btn--primary"
+              @click="saveTask(tasks[modals.groupTaskMod.code].tasks[modals.indexTaskMod], modals.groupTaskMod.code)"
+            >
               salva
             </button>
             <button
-                class="btn btn--alert"
-                @click="modals.taskModalMod = false">
+              class="btn btn--alert"
+              @click="modals.taskModalMod = false"
+            >
               Annulla
             </button>
           </div>
@@ -252,7 +312,10 @@
       </div>
     </div>
     <!--add task-->
-    <div v-if="modals.taskModalAdd" class="modal">
+    <div
+      v-if="modals.taskModalAdd"
+      class="modal"
+    >
       <div class="modal__inner">
         <header>
           <h2>Aggiungi un task</h2>
@@ -261,39 +324,57 @@
           <div class="input-group">
             <label class="typo__label">Tagging</label>
             <VueMultiselect
-                v-model="newTask.groupValue"
-                :multiple="false"
-                :options="groups"
-                :taggable="true"
-                label="name"
-                placeholder="Type to search or add tag"
-                tag-placeholder="Add this as new tag"
-                track-by="code"
-                @tag="addTag"
+              v-model="newTask.groupValue"
+              :multiple="false"
+              :options="groups"
+              :taggable="true"
+              label="name"
+              placeholder="Type to search or add tag"
+              tag-placeholder="Add this as new tag"
+              track-by="code"
+              @tag="addTag"
             />
           </div>
           <div class="input-group">
-            <input id="nametask" v-model="newTask.name" name="nametask" placeholder="Titolo task" type="text">
+            <input
+              id="nametask"
+              v-model="newTask.name"
+              name="nametask"
+              placeholder="Titolo task"
+              type="text"
+            >
           </div>
           <div class="input-group flex">
             <div class="col">
-              <input id="startDate" v-model="newTask.startDate" name="startDate" type="date">
+              <input
+                id="startDate"
+                v-model="newTask.startDate"
+                name="startDate"
+                type="date"
+              >
             </div>
             <div class="col">
-              <input id="endDate" v-model="newTask.endDate" name="endDate" type="date">
+              <input
+                id="endDate"
+                v-model="newTask.endDate"
+                name="endDate"
+                type="date"
+              >
             </div>
           </div>
         </div>
         <footer>
           <div class="button-group flex">
             <button
-                class="btn btn--primary"
-                @click="addTask">
+              class="btn btn--primary"
+              @click="addTask"
+            >
               salva
             </button>
             <button
-                class="btn btn--alert"
-                @click="modals.taskModalAdd = false">
+              class="btn btn--alert"
+              @click="modals.taskModalAdd = false"
+            >
               Annulla
             </button>
           </div>
@@ -305,25 +386,24 @@
 </template>
 
 <script>
-import {DateTime, Duration, Interval} from "luxon";
-import compareLuxonDates from "./mixinCompareLuxonDates";
-import LexoRank from "@kayron013/lexorank";
-import Task from "@/components/Task.vue";
+import { DateTime } from 'luxon';
+import LexoRank from '@kayron013/lexorank';
 
-import backendService from "./services/backendServices";
 import VueMultiselect from 'vue-multiselect';
 
-const BackendService = new backendService;
+// Fontawesome Icons
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
+import {
+  faPen, faAngleDown, faAngleUp, faTrash,
+} from '@fortawesome/free-solid-svg-icons';
+import BackendService from './services/backendServices';
+import Task from './components/Task.vue';
+import compareLuxonDates from './mixinCompareLuxonDates';
 
-//Fontawesome Icons
-import {FontAwesomeIcon} from '@fortawesome/vue-fontawesome';
-import {faPen} from '@fortawesome/free-solid-svg-icons';
-import {faAngleDown} from '@fortawesome/free-solid-svg-icons';
-import {faAngleUp} from '@fortawesome/free-solid-svg-icons';
-import {faTrash} from '@fortawesome/free-solid-svg-icons';
+const backendService = new BackendService();
 
 export default {
-  components: {Task, FontAwesomeIcon, VueMultiselect},
+  components: { Task, FontAwesomeIcon, VueMultiselect },
   data() {
     return {
       taskProps: {
@@ -342,9 +422,9 @@ export default {
       },
       configDate: {
         now: DateTime.now(),
-        startDate: 0, //start date tasks gantt
-        startGantt: 2, //start date gantt -2 month
-        endGantt: 12, //end gantt +12
+        startDate: 0, // start date tasks gantt
+        startGantt: 2, // start date gantt -2 month
+        endGantt: 12, // end gantt +12
         dates: null,
       },
       newTask: {
@@ -352,7 +432,7 @@ export default {
         name: null,
         endDate: null,
         startDate: null,
-        group: null
+        group: null,
       },
       menuLeft: {
         pen: faPen,
@@ -372,56 +452,38 @@ export default {
       openGroups: {},
       groups: [],
       tasks: [],
-    }
-  },
-  mounted() {
-    BackendService.getTasks().then(result => {
-      this.tasks = result;
-      this.getDatesFromTasks().then((results) => {
-        this.configDate.dates = results.dates;
-        this.configDate.startDate = results.startDate;
-
-        this.offsetTasks(); //init offset
-        this.initPositionscroll(); // start scroll
-        this.setGroups(); //set Groups Tasks
-
-        this.$refs.container.addEventListener('scroll', this.handleScroll);
-      });
-    });
-
+    };
   },
   computed: {
     thisGroupOpen() {
-      return (group) => {
-        return this.openGroups[group] === true;
-      }
+      return (group) => this.openGroups[group] === true;
     },
     widthGroup() {
       return (group) => {
         if (this.tasks[group].tasks.length > 0) {
-          let arrayDatesStart = this.tasks[group].tasks.map(element => DateTime.fromFormat(element.startDate, 'yyyy-MM-dd'));
-          let arrayDatesEnd = this.tasks[group].tasks.map(element => DateTime.fromFormat(element.endDate, 'yyyy-MM-dd'));
-          let min = DateTime.min(...arrayDatesStart);
-          let max = DateTime.max(...arrayDatesEnd);
-          let days = max.diff(min, 'days').toObject().days;
-          let width = (days + 1) * this.configStyles.dayWidthEm * this.configStyles.defaultPx;
+          const arrayDatesStart = this.tasks[group].tasks.map((element) => DateTime.fromFormat(element.startDate, 'yyyy-MM-dd'));
+          const arrayDatesEnd = this.tasks[group].tasks.map((element) => DateTime.fromFormat(element.endDate, 'yyyy-MM-dd'));
+          const min = DateTime.min(...arrayDatesStart);
+          const max = DateTime.max(...arrayDatesEnd);
+          const { days } = max.diff(min, 'days').toObject();
+          const width = (days + 1) * this.configStyles.dayWidthEm * this.configStyles.defaultPx;
           return `${width}px`;
         }
         return '0px';
-      }
+      };
     },
     leftGroup() {
       return (group) => {
         if (this.tasks[group].tasks.length > 0 && this.configDate.startDate) {
-          let ganttStartDate = DateTime.fromFormat(this.configDate.startDate, "yyyy-MM-dd").minus({months: this.configDate.startGantt}).toFormat("yyyy-MM");
-          let orderedList = this.tasks[group].tasks.slice().sort((a, b) => compareLuxonDates(a.startDate, b.startDate));
-          let diff = DateTime.fromFormat(orderedList[0].startDate, "yyyy-MM-dd").diff(DateTime.fromFormat(`${ganttStartDate}-01`, "yyyy-MM-dd"), "days").toObject().days;
-          let offset = diff * this.configStyles.dayWidthEm * this.configStyles.defaultPx;
+          const ganttStartDate = DateTime.fromFormat(this.configDate.startDate, 'yyyy-MM-dd').minus({ months: this.configDate.startGantt }).toFormat('yyyy-MM');
+          const orderedList = this.tasks[group].tasks.slice().sort((a, b) => compareLuxonDates(a.startDate, b.startDate));
+          const diff = DateTime.fromFormat(orderedList[0].startDate, 'yyyy-MM-dd').diff(DateTime.fromFormat(`${ganttStartDate}-01`, 'yyyy-MM-dd'), 'days').toObject().days;
+          const offset = diff * this.configStyles.dayWidthEm * this.configStyles.defaultPx;
 
           return `${offset}px`;
         }
         return '0px';
-      }
+      };
     },
     /**
      * days
@@ -431,7 +493,9 @@ export default {
     days() {
       let days = 0;
       if (this.configDate.dates) {
-        this.configDate.dates.forEach(element => days += element.days)
+        this.configDate.dates.forEach((element) => {
+          days += element.days;
+        });
       }
       return days;
     },
@@ -449,9 +513,9 @@ export default {
      */
     offsetNow() {
       if (Object.keys(this.tasks).length > 0 && this.configDate.startDate) {
-        let ganttStartDate = DateTime.fromFormat(this.configDate.startDate, "yyyy-MM-dd").minus({months: this.configDate.startGantt}).toFormat("yyyy-MM");
-        let offset = this.configDate.now.diff(DateTime.fromFormat(`${ganttStartDate}-01`, "yyyy-MM-dd"), "days").toObject().days;
-        console.log('startdat', this.configDate.startDate, this.configDate.startGantt)
+        const ganttStartDate = DateTime.fromFormat(this.configDate.startDate, 'yyyy-MM-dd').minus({ months: this.configDate.startGantt }).toFormat('yyyy-MM');
+        const offset = this.configDate.now.diff(DateTime.fromFormat(`${ganttStartDate}-01`, 'yyyy-MM-dd'), 'days').toObject().days;
+
         return `${this.configStyles.dayWidthEm * Math.floor(offset) * this.configStyles.defaultPx}px`;
       }
       return '0px';
@@ -462,9 +526,7 @@ export default {
      * @returns {function(*)}
      */
     widthTask() {
-      return (task) => {
-        return this.configStyles.dayWidthEm * task.days * this.configStyles.defaultPx;
-      }
+      return (task) => this.configStyles.dayWidthEm * task.days * this.configStyles.defaultPx;
     },
     /**
      * marginLeft
@@ -472,41 +534,57 @@ export default {
      * @returns {function(*)}
      */
     marginLeft() {
-      return (offset) => {
-        return this.configStyles.dayWidthEm * offset * this.configStyles.defaultPx;
-      }
+      return (offset) => this.configStyles.dayWidthEm * offset * this.configStyles.defaultPx;
     },
   },
+  mounted() {
+    backendService.getTasks().then((result) => {
+      this.tasks = result;
+      this.getDatesFromTasks().then((results) => {
+        this.configDate.dates = results.dates;
+        this.configDate.startDate = results.startDate;
+
+        this.offsetTasks(); // init offset
+        this.initPositionScroll(); // start scroll
+        this.setGroups(); // set Groups Tasks
+
+        this.$refs.container.addEventListener('scroll', this.handleScroll);
+      });
+    });
+  },
   methods: {
-    //TODO Modify Groups, drag Groups
-    //TODO Loading and Stop mod
+    // TODO Modify Groups, drag Groups
+    // TODO Loading and Stop mod
     closeGroup(group) {
       this.openGroups[group] = !this.openGroups[group];
     },
     setGroups() {
       this.groups = [];
-      for (const key in this.tasks) {
+      /* for...in loops iterate over the entire prototype chain,
+      which is virtually never what you want.
+      Use Object.{keys,values,entries}, and iterate over the resulting array.
+      */
+      Object.entries(this.tasks).forEach(([key, value]) => {
         this.groups.push({
-          name: this.tasks[key].name,
-          code: key
+          name: value.name,
+          code: key,
         });
-
         this.openGroups[key] = true;
-      }
+      });
     },
     /**
-     * initPositionscroll
+     * initPositionScroll
      * calc position of tasks container scroll
      */
-    initPositionscroll() {
+    initPositionScroll() {
       setTimeout(() => {
-        let ganttStartDate = DateTime.fromFormat(this.configDate.startDate, "yyyy-MM-dd").minus({months: this.configDate.startGantt}).toFormat("yyyy-MM");
+        const ganttStartDate = DateTime.fromFormat(this.configDate.startDate, 'yyyy-MM-dd').minus({ months: this.configDate.startGantt }).toFormat('yyyy-MM');
 
-        let offset = this.configDate.now.diff(DateTime.fromFormat(`${ganttStartDate}-01`, "yyyy-MM-dd"), "days").toObject().days - 5;
+        const offset = this.configDate.now.diff(DateTime.fromFormat(`${ganttStartDate}-01`, 'yyyy-MM-dd'), 'days').toObject().days - 5;
 
         this.$refs.container.scrollTo({
           left: offset * this.configStyles.defaultPx * this.configStyles.dayWidthEm,
-          behavior: 'smooth'
+          behavior: 'smooth',
         });
       }, 100);
     },
@@ -515,11 +593,11 @@ export default {
      * create date labels
      */
     getDatesFromTasks() {
-      return new Promise((resolve, reject) => {
-        BackendService.getDates(this.configDate.startGantt, this.configDate.endGantt).then((results) => {
-              resolve(results);
-            }
-        );
+      return new Promise((resolve) => {
+        // eslint-disable-next-line max-len
+        backendService.getDates(this.configDate.startGantt, this.configDate.endGantt).then((results) => {
+          resolve(results);
+        });
       });
     },
     /**
@@ -528,21 +606,25 @@ export default {
      */
     offsetTasks() {
       if (Object.keys(this.tasks).length > 0) {
-        let ganttStartDate = DateTime.fromFormat(this.configDate.startDate, "yyyy-MM-dd").minus({months: this.configDate.startGantt}).toFormat("yyyy-MM");
+        const ganttStartDate = DateTime.fromFormat(this.configDate.startDate, 'yyyy-MM-dd').minus({ months: this.configDate.startGantt }).toFormat('yyyy-MM');
 
-        for (const key in this.tasks) {
-          this.tasks[key].tasks = this.tasks[key].tasks.map((task, index) => {
-            let {startDate} = task;
-            startDate = DateTime.fromFormat(startDate, "yyyy-MM-dd");
+        /* for...in loops iterate over the entire prototype chain,
+         which is virtually never what you want.
+         Use Object.{keys,values,entries}, and iterate over the resulting array.
+         */
+        Object.entries(this.tasks).forEach(([key]) => {
+          this.tasks[key].tasks = this.tasks[key].tasks.map((task) => {
+            let { startDate } = task;
+            startDate = DateTime.fromFormat(startDate, 'yyyy-MM-dd');
 
-            let offset = startDate.diff(DateTime.fromFormat(`${ganttStartDate}-01`, "yyyy-MM-dd"), "days").toObject().days;
+            const offset = startDate.diff(DateTime.fromFormat(`${ganttStartDate}-01`, 'yyyy-MM-dd'), 'days').toObject().days;
             return {
               ...task,
-              days: DateTime.fromFormat(task.endDate, "yyyy-MM-dd").diff(DateTime.fromFormat(task.startDate, "yyyy-MM-dd"), "days").days + 1,
+              days: DateTime.fromFormat(task.endDate, 'yyyy-MM-dd').diff(DateTime.fromFormat(task.startDate, 'yyyy-MM-dd'), 'days').days + 1,
               offset,
-            }
+            };
           });
-        }
+        });
       }
     },
     /**
@@ -550,7 +632,7 @@ export default {
      * add 1 moth to start date
      */
     changeStartGantt() {
-      this.configDate.startGantt = this.configDate.startGantt + 1;
+      this.configDate.startGantt += 1;
       this.getDatesFromTasks().then((results) => {
         this.configDate.dates = results.dates;
         this.configDate.startDate = results.startDate;
@@ -561,9 +643,10 @@ export default {
     /**
      * openModalModify
      * @param index
+     * @param groupCode
      */
     openModalModify(index, groupCode) {
-      this.modals.groupTaskMod = {code: groupCode, name: this.tasks[groupCode].name};
+      this.modals.groupTaskMod = { code: groupCode, name: this.tasks[groupCode].name };
       this.modals.indexTaskMod = index;
       this.modals.taskModalMod = true;
     },
@@ -584,97 +667,100 @@ export default {
      * @param vs
      */
     setTaskData(task, distance, handle, vs) {
-      const ganttStartDate = DateTime.fromFormat(this.configDate.startDate, "yyyy-MM-dd").minus({months: this.configDate.startGantt}).toFormat("yyyy-MM");
-      const startDate = DateTime.fromFormat(task.startDate, "yyyy-MM-dd");
-      const endDate = DateTime.fromFormat(task.endDate, "yyyy-MM-dd");
+      const ganttStartDate = DateTime.fromFormat(this.configDate.startDate, 'yyyy-MM-dd').minus({ months: this.configDate.startGantt }).toFormat('yyyy-MM');
+      const startDate = DateTime.fromFormat(task.startDate, 'yyyy-MM-dd');
+      const endDate = DateTime.fromFormat(task.endDate, 'yyyy-MM-dd');
 
       if (handle === 'right') {
         if (vs === 'left') {
+          // eslint-disable-next-line no-param-reassign
           task.days = (
-              endDate
-                  .minus({days: Math.abs(Math.ceil(distance))}) > startDate)
-              ? task.days + Math.floor(distance) : 1;
+            endDate
+              .minus({ days: Math.abs(Math.ceil(distance)) }) > startDate)
+            ? task.days + Math.floor(distance) : 1;
 
-          task.endDate =
-              (endDate
-                  .minus({days: Math.abs(Math.ceil(distance))}) > startDate)
-                  ?
-                  endDate
-                      .minus({days: Math.abs(Math.floor(distance))})
-                      .toFormat("yyyy-MM-dd")
-                  : task.startDate;
+          // eslint-disable-next-line no-param-reassign
+          task.endDate = (endDate
+            .minus({ days: Math.abs(Math.ceil(distance)) }) > startDate)
+            ? endDate
+              .minus({ days: Math.abs(Math.floor(distance)) })
+              .toFormat('yyyy-MM-dd')
+            : task.startDate;
 
-          if (task.endDate <= this.configDate.startGantt) { //se arrivo al primo giorno del gantt
+          if (task.endDate <= this.configDate.startGantt) {
+            // eslint-disable-next-line no-param-reassign
             task.startDate = this.configDate.startGantt;
           }
         } else if (vs === 'right') {
+          // eslint-disable-next-line no-param-reassign
+          task.days += Math.ceil(distance);
 
-          task.days = task.days + Math.ceil(distance);
+          const endDateNew = endDate
+            .plus({ days: Math.abs(Math.ceil(distance)) })
+            .toFormat('yyyy-MM-dd');
 
-          let endDateNew = endDate
-              .plus({days: Math.abs(Math.ceil(distance))})
-              .toFormat("yyyy-MM-dd");
-
+          // eslint-disable-next-line no-param-reassign
           task.endDate = endDateNew;
         }
       } else if (handle === 'left') {
         if (vs === 'left') {
+          // eslint-disable-next-line no-param-reassign
           task.startDate = startDate
-              .minus({days: Math.abs(Math.floor(distance))})
-              .toFormat("yyyy-MM-dd");
+            .minus({ days: Math.abs(Math.floor(distance)) })
+            .toFormat('yyyy-MM-dd');
 
-          task.days = task.days - Math.floor(distance);
-          task.offset = task.offset + Math.floor(distance);
+          // eslint-disable-next-line no-param-reassign
+          task.days -= Math.floor(distance);
+          // eslint-disable-next-line no-param-reassign
+          task.offset += Math.floor(distance);
 
-          if (task.startDate <= this.configDate.startGantt) { //se arrivo al primo giorno del gantt
+          if (task.startDate <= this.configDate.startGantt) { // se arrivo al primo giorno del gantt
+            // eslint-disable-next-line no-param-reassign
             task.startDate = this.configDate.startGantt;
           }
         } else if (vs === 'right') {
+          const startDateNew = (startDate.plus({ days: Math.abs(Math.ceil(distance)) }) < endDate)
+            ? DateTime.fromFormat(task.startDate, 'yyyy-MM-dd')
+              .plus({ days: Math.abs(Math.ceil(distance)) })
+              .toFormat('yyyy-MM-dd') : task.endDate;
 
-          let startDateNew =
-              (startDate.plus({days: Math.abs(Math.ceil(distance))}) < endDate) ?
-                  DateTime.fromFormat(task.startDate, "yyyy-MM-dd")
-                      .plus({days: Math.abs(Math.ceil(distance))})
-                      .toFormat("yyyy-MM-dd") : task.endDate;
-
+          // eslint-disable-next-line no-param-reassign
           task.startDate = startDateNew;
 
-          task.days = (startDate.plus({days: Math.abs(Math.ceil(distance))}) < endDate) ? task.days - Math.ceil(distance) : 1;
+          // eslint-disable-next-line max-len,no-param-reassign
+          task.days = (startDate.plus({ days: Math.abs(Math.ceil(distance)) }) < endDate) ? task.days - Math.ceil(distance) : 1;
 
-          task.offset =
-              (startDate
-                      .plus({days: Math.abs(Math.ceil(distance))})
+          // eslint-disable-next-line no-param-reassign
+          task.offset = (startDate
+            .plus({ days: Math.abs(Math.ceil(distance)) })
                   < endDate
-              )
-                  ? task.offset + Math.ceil(distance)
-                  : DateTime.fromFormat(task.startDate, "yyyy-MM-dd").diff(DateTime.fromFormat(`${ganttStartDate}-01`, "yyyy-MM-dd"), "days").toObject().days
-          ;
-
+          )
+            ? task.offset + Math.ceil(distance)
+            : DateTime.fromFormat(task.startDate, 'yyyy-MM-dd').diff(DateTime.fromFormat(`${ganttStartDate}-01`, 'yyyy-MM-dd'), 'days').toObject().days;
         }
-
+      } else if (distance < 0) {
+        // eslint-disable-next-line no-param-reassign
+        task.endDate = endDate
+          .minus({ days: Math.abs(Math.floor(distance)) })
+          .toFormat('yyyy-MM-dd');
+        // eslint-disable-next-line no-param-reassign
+        task.startDate = DateTime.fromFormat(task.startDate, 'yyyy-MM-dd')
+          .minus({ days: Math.abs(Math.floor(distance)) })
+          .toFormat('yyyy-MM-dd');
       } else {
-        if (distance < 0) {
-          task.endDate =
-              endDate
-                  .minus({days: Math.abs(Math.floor(distance))})
-                  .toFormat("yyyy-MM-dd");
-          task.startDate = DateTime.fromFormat(task.startDate, "yyyy-MM-dd")
-              .minus({days: Math.abs(Math.floor(distance))})
-              .toFormat("yyyy-MM-dd");
-        } else {
-          task.endDate =
-              endDate
-                  .plus({days: Math.abs(Math.ceil(distance))})
-                  .toFormat("yyyy-MM-dd");
-          task.startDate = DateTime.fromFormat(task.startDate, "yyyy-MM-dd")
-              .plus({days: Math.abs(Math.ceil(distance))})
-              .toFormat("yyyy-MM-dd");
-        }
+        // eslint-disable-next-line no-param-reassign
+        task.endDate = endDate
+          .plus({ days: Math.abs(Math.ceil(distance)) })
+          .toFormat('yyyy-MM-dd');
+        // eslint-disable-next-line no-param-reassign
+        task.startDate = DateTime.fromFormat(task.startDate, 'yyyy-MM-dd')
+          .plus({ days: Math.abs(Math.ceil(distance)) })
+          .toFormat('yyyy-MM-dd');
       }
       /**
        * Send data to API
        */
-      BackendService.updateTask(task, task.groupCode);
+      backendService.updateTask(task, task.groupCode);
     },
     /**
      * handle scroll on tasks container
@@ -682,7 +768,7 @@ export default {
      */
     handleScroll(e) {
       if (e.target.scrollLeft + e.target.offsetWidth >= document.querySelector('.tasks__row__group').offsetWidth) {
-        this.configDate.endGantt = this.configDate.endGantt + 2;
+        this.configDate.endGantt += 2;
         this.getDatesFromTasks().then((results) => {
           this.configDate.dates = results.dates;
           this.configDate.startDate = results.startDate;
@@ -695,6 +781,7 @@ export default {
      * Start drag on tasks label
      * @param e
      * @param index
+     * @param rank
      */
     startDrag(e, index, rank) {
       e.dataTransfer.dropEffect = 'move';
@@ -706,26 +793,28 @@ export default {
      * handle ondrop on tasks label
      * @param e
      * @param dropIndex
+     * @param dropRank
      * @param vs
      */
     onDrop(e, dropIndex, dropRank, vs) {
-      let itemIndex = e.dataTransfer.getData('itemIndex');
-      let itemRank = LexoRank.from(e.dataTransfer.getData('itemRank'));
-      let itemRankValue = itemRank.value;
-      let itemGroupLetter = itemRankValue[0];
+      const itemIndex = e.dataTransfer.getData('itemIndex');
+      const itemRank = LexoRank.from(e.dataTransfer.getData('itemRank'));
+      const itemRankValue = itemRank.value;
+      const itemGroupLetter = itemRankValue[0];
 
+      // eslint-disable-next-line no-param-reassign
       dropRank = LexoRank.from(dropRank);
-      let dropBucket = dropRank.bucket;
-      let dropRankValue = dropRank.value;
-      let dropGroupLetter = dropRankValue[0];
+      const dropBucket = dropRank.bucket;
+      const dropRankValue = dropRank.value;
+      const dropGroupLetter = dropRankValue[0];
 
       let rank = null;
       let newIndex = 0;
 
-      let toLast = dropIndex === this.tasks[dropGroupLetter].tasks.length - 1;
-      let firstToNextNotLast = dropIndex === 0 && vs === 'next' && dropIndex !== this.tasks[dropGroupLetter].tasks.length - 1;
-      let toFirstPrev = dropIndex === 0 && vs === 'prev';
-      let next = vs === 'next';
+      const toLast = dropIndex === this.tasks[dropGroupLetter].tasks.length - 1;
+      const firstToNextNotLast = dropIndex === 0 && vs === 'next' && dropIndex !== this.tasks[dropGroupLetter].tasks.length - 1;
+      const toFirstPrev = dropIndex === 0 && vs === 'prev';
+      const next = vs === 'next';
 
       if (toLast) {
         rank = LexoRank.from(this.tasks[dropGroupLetter].tasks[dropIndex].rank).increment();
@@ -743,7 +832,7 @@ export default {
 
       if (rank) {
         newIndex = (dropGroupLetter === itemGroupLetter && itemIndex < newIndex) ? newIndex - 1 : newIndex;
-        let task = this.tasks[itemGroupLetter].tasks.splice(itemIndex, 1)[0];
+        const task = this.tasks[itemGroupLetter].tasks.splice(itemIndex, 1)[0];
         task.bucket = dropBucket;
         task.groupCode = dropGroupLetter;
         task.rank = rank.toString();
@@ -772,10 +861,11 @@ export default {
     /**
      * saveTask
      * @param task
+     * @param group
      */
     saveTask(task, group) {
-      BackendService.updateTask(task, group).then(result => {
-        BackendService.getTasks().then(result => {
+      backendService.updateTask(task, group).then(() => {
+        backendService.getTasks().then((result) => {
           this.tasks = result;
           this.modals.groupTaskMod = null;
           this.modals.indexTaskMod = null;
@@ -785,51 +875,56 @@ export default {
       });
     },
     taskModalAdd() {
-      this.setGroups(); //set Groups Tasks
+      this.setGroups(); // set Groups Tasks
       this.newTask.groupValue = this.groups[0];
       this.modals.taskModalAdd = true;
     },
     addTag(newTag) {
-      let char = this.groups[this.groups.length - 1].code;
+      const char = this.groups[this.groups.length - 1].code;
 
       let group = String.fromCharCode(char.charCodeAt(char.length - 1) + 1);
       if (char[char.length - 1] === 'z') {
-        group = char + 'a';
+        group = `${char}a`;
       }
 
       const tag = {
         name: newTag,
-        code: group
-      }
+        code: group,
+      };
 
-      this.groups.push(tag)
+      this.groups.push(tag);
       this.newTask.groupValue = tag;
     },
     /**
      * addTask
      */
     addTask() {
-      //TODO Checks
-      let lexoRank = (this.tasks[this.newTask.groupValue.code])
-          ? LexoRank.from(this.tasks[this.newTask.groupValue.code].tasks[this.tasks[this.newTask.groupValue.code].tasks.length - 1].rank).increment().toString()
-          : new LexoRank(this.newTask.groupValue.code + 'aa', 0).toString();
+      // TODO Checks
+      const lexoRank = (this.tasks[this.newTask.groupValue.code])
+        ? LexoRank.from(
+          this.tasks[this.newTask.groupValue.code]
+            .tasks[this.tasks[this.newTask.groupValue.code].tasks.length - 1]
+            .rank,
+        )
+          .increment().toString()
+        : new LexoRank(`${this.newTask.groupValue.code}aa`, 0).toString();
 
-      let task = {
+      const task = {
         bucket: 0,
         groupCode: this.newTask.groupValue.code,
         rank: lexoRank,
-        startDate: DateTime.fromFormat(this.newTask.startDate, "yyyy-MM-dd").toFormat("yyyy-MM-dd"),
-        endDate: DateTime.fromFormat(this.newTask.endDate, "yyyy-MM-dd").toFormat("yyyy-MM-dd"),
-        days: DateTime.fromFormat(this.newTask.endDate, "yyyy-MM-dd").diff(DateTime.fromFormat(this.newTask.startDate, "yyyy-MM-dd"), "days").toObject().days,
+        startDate: DateTime.fromFormat(this.newTask.startDate, 'yyyy-MM-dd').toFormat('yyyy-MM-dd'),
+        endDate: DateTime.fromFormat(this.newTask.endDate, 'yyyy-MM-dd').toFormat('yyyy-MM-dd'),
+        days: DateTime.fromFormat(this.newTask.endDate, 'yyyy-MM-dd').diff(DateTime.fromFormat(this.newTask.startDate, 'yyyy-MM-dd'), 'days').toObject().days,
         offset: 0,
-        width: DateTime.fromFormat(this.newTask.endDate, "yyyy-MM-dd").diff(DateTime.fromFormat(this.newTask.startDate, "yyyy-MM-dd"), "days").toObject().days * this.configStyles.dayWidthEm * this.configStyles.defaultPx,
+        width: DateTime.fromFormat(this.newTask.endDate, 'yyyy-MM-dd').diff(DateTime.fromFormat(this.newTask.startDate, 'yyyy-MM-dd'), 'days').toObject().days * this.configStyles.dayWidthEm * this.configStyles.defaultPx,
         marginLeft: 0,
         name: this.newTask.name,
       };
 
-      BackendService.addTask(task).then(() => {
+      backendService.addTask(task).then(() => {
         this.openGroups[task.groupCode] = true;
-        BackendService.getTasks().then(() => {
+        backendService.getTasks().then(() => {
           this.offsetTasks();
         });
       });
@@ -841,22 +936,22 @@ export default {
     },
     /**
      * removeTask
-     * @param id
+     * @param task
+     * @param group
      */
     removeTask(task, group) {
-      //TODO add loading
+      // TODO add loading
       this.menuLeft.activeMenu = false;
 
-      BackendService.removeTask(task, group).then(() => {
-        BackendService.getTasks().then(result => {
+      backendService.removeTask(task, group).then(() => {
+        backendService.getTasks().then((result) => {
           this.tasks = result;
           this.offsetTasks();
         });
       });
-
     },
   },
-}
+};
 </script>
 
 <style src="vue-multiselect/dist/vue-multiselect.css"></style>
@@ -960,7 +1055,6 @@ html {
 
           }
 
-
           &__title {
             position: relative;
             display: flex;
@@ -972,7 +1066,6 @@ html {
             border-bottom: 1px solid $border-color;
             font-size: 0.5em;
             font-weight: normal;
-
 
             &.active {
               background-color: lighten($label-months-bg, 40%);
@@ -987,7 +1080,6 @@ html {
                 margin: 0 0.2em;
               }
             }
-
 
             &:last-child {
               border-bottom: 0;
