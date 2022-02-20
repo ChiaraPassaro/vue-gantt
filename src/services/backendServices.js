@@ -1,10 +1,10 @@
-import LexoRank from "@kayron013/lexorank";
-import {DateTime, Duration, Interval} from "luxon";
-import compareLuxonDates from "../mixinCompareLuxonDates";
+import LexoRank from '@kayron013/lexorank';
+import { DateTime, Duration, Interval } from 'luxon';
+import compareLuxonDates from '../mixinCompareLuxonDates';
 
-//Mock data
+// Mock data
 const Tasks = {
-  'a': {
+  a: {
     name: 'Name Group',
     groupCode: 'a',
     bucket: 0,
@@ -33,7 +33,7 @@ const Tasks = {
         offset: 0,
         width: 0,
         marginLeft: 0,
-        name: 'Lorem Ipsum 2'
+        name: 'Lorem Ipsum 2',
       },
       {
         id: 3,
@@ -46,7 +46,7 @@ const Tasks = {
         offset: 0,
         width: 0,
         marginLeft: 0,
-        name: 'Lorem Ipsum 3'
+        name: 'Lorem Ipsum 3',
       },
       {
         id: 4,
@@ -59,7 +59,7 @@ const Tasks = {
         offset: 0,
         width: 0,
         marginLeft: 0,
-        name: 'Lorem Ipsum 4'
+        name: 'Lorem Ipsum 4',
       },
       {
         id: 5,
@@ -72,11 +72,11 @@ const Tasks = {
         offset: 0,
         width: 0,
         marginLeft: 0,
-        name: 'Lorem Ipsum 5'
+        name: 'Lorem Ipsum 5',
       },
-    ]
+    ],
   },
-  'b': {
+  b: {
     name: 'Name Group 2',
     groupCode: 'b',
     bucket: 0,
@@ -105,7 +105,7 @@ const Tasks = {
         offset: 0,
         width: 0,
         marginLeft: 0,
-        name: 'Lorem Ipsum 2'
+        name: 'Lorem Ipsum 2',
       },
       {
         id: 8,
@@ -118,7 +118,7 @@ const Tasks = {
         offset: 0,
         width: 0,
         marginLeft: 0,
-        name: 'Lorem Ipsum 3'
+        name: 'Lorem Ipsum 3',
       },
       {
         id: 9,
@@ -131,7 +131,7 @@ const Tasks = {
         offset: 0,
         width: 0,
         marginLeft: 0,
-        name: 'Lorem Ipsum 4'
+        name: 'Lorem Ipsum 4',
       },
       {
         id: 10,
@@ -144,9 +144,9 @@ const Tasks = {
         offset: 0,
         width: 0,
         marginLeft: 0,
-        name: 'Lorem Ipsum 5'
+        name: 'Lorem Ipsum 5',
       },
-    ]
+    ],
   },
 };
 
@@ -163,21 +163,26 @@ const api = {
     },
     getTask: (id) => {
       let tasks = [];
-      Tasks.forEach(el => {
+      Tasks.forEach((el) => {
         tasks = [...tasks, ...el.tasks];
       });
-      return tasks.filter(element => element.id === id);
+      return tasks.filter((element) => element.id === id);
     },
     addTask: (task) => {
       const tasksIds = [];
       const groups = [];
 
       for (const key in Tasks) {
-        tasksIds.push(...Tasks[key].tasks.map(task => task.id));
+        tasksIds.push(...Tasks[key].tasks.map((element) => element.id));
         groups.push(key);
       }
-      const maxId = Math.max(...tasksIds);
-      task.id = maxId + 1;
+
+      if (tasksIds.length > 0) {
+        const maxId = Math.max(...tasksIds);
+        task.id = maxId + 1;
+      } else {
+        task.id = 1;
+      }
 
       if (!Object.keys(Tasks).includes(task.groupCode)) {
         Tasks[task.groupCode] = {
@@ -185,17 +190,27 @@ const api = {
           name: task.group,
           bucket: task.bucket,
           tasks: [
-            task
-          ]
+            task,
+          ],
         };
+
         return task;
       }
 
       Tasks[task.groupCode].tasks.push(task);
-      return task;
+      return Tasks;
+    },
+    addGroup: (group) => {
+      Tasks[group.code] = {
+        name: group.name,
+        groupCode: group.code,
+        bucket: 0,
+        tasks: [],
+      };
+      return group;
     },
     removeTask: (task, group) => {
-      Tasks[group].tasks = Tasks[group].tasks.filter(element => element.id !== task.id);
+      Tasks[group].tasks = Tasks[group].tasks.filter((element) => element.id !== task.id);
       for (const key in Tasks) {
         if (Tasks[key].tasks.length === 0) {
           delete Tasks[key];
@@ -204,12 +219,17 @@ const api = {
       return task;
     },
     updateTask: (task, group) => {
-      const index = Tasks[group].tasks.findIndex(element => element.id === task.id);
+      const index = Tasks[group].tasks.findIndex((element) => element.id === task.id);
       Tasks[group].tasks[index] = task;
       return task;
     },
     removeGroup(group) {
-      delete Tasks[group];
+      delete Tasks[group.code];
+      return Tasks;
+    },
+    updateGroup(group) {
+      console.log('bk', Tasks[group.code]);
+      Tasks[group.code].name = group.name;
       return Tasks;
     },
     getDates(startGantt, endGantt) {
@@ -218,30 +238,26 @@ const api = {
         dates = [...dates, ...Tasks[group].tasks];
       }
       dates.sort((a, b) => compareLuxonDates(a.startDate, b.startDate));
-      let startDate = dates[0].startDate;
+      const { startDate } = dates[0];
       dates.sort((a, b) => compareLuxonDates(a.endDate, b.endDate));
-      let endDate = dates[dates.length - 1].endDate;
+      const { endDate } = dates[dates.length - 1];
       console.log(startDate, endDate);
 
-      let interval = Interval.fromDateTimes
-      (DateTime.fromFormat(startDate, "yyyy-MM-dd").minus({
+      const interval = Interval.fromDateTimes(DateTime.fromFormat(startDate, 'yyyy-MM-dd').minus({
         months:
-        startGantt
-      }), DateTime.fromFormat(endDate, "yyyy-MM-dd").plus({'months': endGantt}))
-          .splitBy(Duration.fromObject({month: 1}));
-
+        startGantt,
+      }), DateTime.fromFormat(endDate, 'yyyy-MM-dd').plus({ months: endGantt }))
+        .splitBy(Duration.fromObject({ month: 1 }));
 
       return {
-        dates: interval.map((element) => {
-          return {
-            days: element.s.daysInMonth,
-            month: element.s.toFormat("MMMM", {locale: "it"}),
-            year: element.s.toFormat("yyyy")
-          }
-        }),
-        startDate: startDate
-      }
-    }
+        dates: interval.map((element) => ({
+          days: element.s.daysInMonth,
+          month: element.s.toFormat('MMMM', { locale: 'it' }),
+          year: element.s.toFormat('yyyy'),
+        })),
+        startDate,
+      };
+    },
   },
 
 };
@@ -249,14 +265,13 @@ const api = {
 export default class BackendService {
   getDates(startGantt, endGantt) {
     return new Promise((resolve, reject) => {
-      resolve(api.Tasks.getDates(startGantt, endGantt))
+      resolve(api.Tasks.getDates(startGantt, endGantt));
     });
   }
 
   getTasks() {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        console.log(api)
         resolve(api.Tasks.getTasks());
       }, 500);
     });
@@ -273,34 +288,48 @@ export default class BackendService {
   addTask(task) {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        resolve(api.Tasks.addTask(task))
-      }, 500);
+        resolve(api.Tasks.addTask(task));
+      }, 1);
     });
   }
 
   removeTask(task, group) {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        resolve(api.Tasks.removeTask(task, group))
+        resolve(api.Tasks.removeTask(task, group));
       }, 500);
     });
   }
 
   updateTask(task, group) {
     return new Promise((resolve, reject) => {
-      resolve(api.Tasks.updateTask(task, group))
+      resolve(api.Tasks.updateTask(task, group));
       setTimeout(() => {
       }, 500);
+    });
+  }
+
+  addGroup(group) {
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(api.Tasks.addGroup(group));
+      }, 1);
     });
   }
 
   removeGroup(group) {
     return new Promise((resolve, reject) => {
       setTimeout(() => {
-        resolve(api.Tasks.removeGroup(group))
-      }, 500);
+        resolve(api.Tasks.removeGroup(group));
+      }, 1);
     });
   }
 
+  updateGroup(group) {
+    return new Promise((resolve, reject) => {
+      setTimeout(() => {
+        resolve(api.Tasks.updateGroup(group));
+      }, 1);
+    });
+  }
 }
-

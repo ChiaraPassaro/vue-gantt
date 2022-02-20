@@ -39,11 +39,19 @@
             class="gantt__left__bucket"
           >
             <h2 class="gantt__left__title-group">
-              {{ group.name }}
+              <span>{{ group.name }}</span>
+              <font-awesome-icon
+                :icon="menuLeft.pen"
+                @click="openModalModifyGroup(group.groupCode)"
+              />
               <font-awesome-icon
                 v-if="thisGroupOpen(group.groupCode)"
                 :icon="menuLeft.angleUp"
                 @click="closeGroup(group.groupCode)"
+              />
+              <font-awesome-icon
+                :icon="menuLeft.trash"
+                @click="openModalRemoveGroup(group.groupCode)"
               />
               <font-awesome-icon
                 v-if="!thisGroupOpen(group.groupCode)"
@@ -297,9 +305,12 @@
           <div class="button-group flex">
             <button
               class="btn btn--primary"
-              @click="saveTask(tasks[modals.groupTaskMod.code].tasks[modals.indexTaskMod], modals.groupTaskMod.code)"
+              @click="saveTask(
+                tasks[modals.groupTaskMod.code].tasks[modals.indexTaskMod],
+                modals.groupTaskMod.code
+              )"
             >
-              salva
+              Salva
             </button>
             <button
               class="btn btn--alert"
@@ -381,6 +392,75 @@
         </footer>
       </div>
     </div>
+    <!--mod group-->
+    <div
+      v-if="modals.groupModalMod"
+      class="modal"
+    >
+      <div class="modal__inner">
+        <header>
+          <h2>Modifica il gruppo: {{ tasks[modals.groupMod.code].name }}</h2>
+        </header>
+        <div class="content">
+          <div class="input-group">
+            <input
+              id="namegroup"
+              v-model="modals.groupMod.name"
+              name="namegroup"
+              placeholder="Titolo gruppo"
+              type="text"
+            >
+          </div>
+        </div>
+        <footer>
+          <div class="button-group flex">
+            <button
+              class="btn btn--primary"
+              @click="updateGroup(
+                modals.groupMod
+              )"
+            >
+              Salva
+            </button>
+            <button
+              class="btn btn--alert"
+              @click="modals.groupModalMod = false"
+            >
+              Annulla
+            </button>
+          </div>
+        </footer>
+      </div>
+    </div>
+    <!--remove group-->
+    <div
+      v-if="modals.groupModalRemove"
+      class="modal"
+    >
+      <div class="modal__inner">
+        <header>
+          <h2>vuoi eliminare il gruppo: {{ tasks[modals.groupMod.code].name }}?</h2>
+        </header>
+        <footer>
+          <div class="button-group flex">
+            <button
+              class="btn btn--primary"
+              @click="removeGroup(
+                modals.groupMod
+              )"
+            >
+              Elimina
+            </button>
+            <button
+              class="btn btn--alert"
+              @click="modals.groupModalRemove = false"
+            >
+              Annulla
+            </button>
+          </div>
+        </footer>
+      </div>
+    </div>
     <!--/Modals-->
   </div>
 </template>
@@ -448,10 +528,13 @@ export default {
         taskModalMod: false,
         backMonths: false,
         taskModalAdd: false,
+        groupMod: null,
+        groupModalMod: false,
+        groupModalRemove: false,
       },
       openGroups: {},
       groups: [],
-      tasks: [],
+      tasks: {},
     };
   },
   computed: {
@@ -475,8 +558,11 @@ export default {
     leftGroup() {
       return (group) => {
         if (this.tasks[group].tasks.length > 0 && this.configDate.startDate) {
-          const ganttStartDate = DateTime.fromFormat(this.configDate.startDate, 'yyyy-MM-dd').minus({ months: this.configDate.startGantt }).toFormat('yyyy-MM');
-          const orderedList = this.tasks[group].tasks.slice().sort((a, b) => compareLuxonDates(a.startDate, b.startDate));
+          const ganttStartDate = DateTime.fromFormat(this.configDate.startDate, 'yyyy-MM-dd')
+            .minus({ months: this.configDate.startGantt })
+            .toFormat('yyyy-MM');
+          const orderedList = this.tasks[group].tasks.slice()
+            .sort((a, b) => compareLuxonDates(a.startDate, b.startDate));
           const diff = DateTime.fromFormat(orderedList[0].startDate, 'yyyy-MM-dd').diff(DateTime.fromFormat(`${ganttStartDate}-01`, 'yyyy-MM-dd'), 'days').toObject().days;
           const offset = diff * this.configStyles.dayWidthEm * this.configStyles.defaultPx;
 
@@ -649,6 +735,19 @@ export default {
       this.modals.groupTaskMod = { code: groupCode, name: this.tasks[groupCode].name };
       this.modals.indexTaskMod = index;
       this.modals.taskModalMod = true;
+    },
+    /**
+     * openModalModifyGroup
+     * @param index
+     * @param groupCode
+     */
+    openModalModifyGroup(groupCode) {
+      this.modals.groupMod = { code: groupCode, name: this.tasks[groupCode].name };
+      this.modals.groupModalMod = true;
+    },
+    openModalRemoveGroup(groupCode) {
+      this.modals.groupMod = { code: groupCode, name: this.tasks[groupCode].name };
+      this.modals.groupModalRemove = true;
     },
     /**
      * activateTask
@@ -874,17 +973,42 @@ export default {
         });
       });
     },
+    updateGroup(group) {
+      backendService.updateGroup(group).then(() => {
+        backendService.getTasks().then((result) => {
+          this.tasks = result;
+          this.modals.groupMod = null;
+          this.modals.groupModalMod = false;
+          this.offsetTasks();
+        });
+      });
+    },
+    addGroup(group) {
+      backendService.addGroup(group).then(() => {
+        this.setGroups();
+        backendService.getTasks().then((result) => {
+          this.tasks = result;
+          this.modals.groupMod = null;
+          this.modals.groupModalMod = false;
+          this.offsetTasks();
+        });
+      });
+    },
     taskModalAdd() {
       this.setGroups(); // set Groups Tasks
       this.newTask.groupValue = this.groups[0];
       this.modals.taskModalAdd = true;
     },
     addTag(newTag) {
-      const char = this.groups[this.groups.length - 1].code;
-
-      let group = String.fromCharCode(char.charCodeAt(char.length - 1) + 1);
-      if (char[char.length - 1] === 'z') {
-        group = `${char}a`;
+      let group;
+      if (this.groups[this.groups.length - 1]) {
+        const char = this.groups[this.groups.length - 1].code;
+        group = String.fromCharCode(char.charCodeAt(char.length - 1) + 1);
+        if (char[char.length - 1] === 'z') {
+          group = `${char}a`;
+        }
+      } else {
+        group = 'a';
       }
 
       const tag = {
@@ -922,17 +1046,34 @@ export default {
         name: this.newTask.name,
       };
 
-      backendService.addTask(task).then(() => {
-        this.openGroups[task.groupCode] = true;
-        backendService.getTasks().then(() => {
-          this.offsetTasks();
-        });
-      });
-
-      this.newTask.name = null;
-      this.newTask.startDate = null;
-      this.newTask.endDate = null;
-      this.modals.taskModalAdd = false;
+      if (!Object.keys(this.tasks).includes(this.newTask.groupValue.code)) {
+        backendService.addGroup(
+          { code: this.newTask.groupValue.code, name: this.newTask.groupValue.name },
+        )
+          .then(() => {
+            backendService.addTask(task)
+              .then((tasks) => {
+                this.tasks = tasks;
+                this.setGroups();
+                this.offsetTasks();
+                this.newTask.name = null;
+                this.newTask.startDate = null;
+                this.newTask.endDate = null;
+                this.modals.taskModalAdd = false;
+              });
+          });
+      } else {
+        backendService.addTask(task)
+          .then((tasks) => {
+            this.tasks = tasks;
+            this.setGroups();
+            this.offsetTasks();
+            this.newTask.name = null;
+            this.newTask.startDate = null;
+            this.newTask.endDate = null;
+            this.modals.taskModalAdd = false;
+          });
+      }
     },
     /**
      * removeTask
@@ -943,12 +1084,31 @@ export default {
       // TODO add loading
       this.menuLeft.activeMenu = false;
 
-      backendService.removeTask(task, group).then(() => {
-        backendService.getTasks().then((result) => {
-          this.tasks = result;
-          this.offsetTasks();
+      backendService.removeTask(task, group)
+        .then(() => {
+          backendService.getTasks()
+            .then((result) => {
+              this.tasks = result;
+              this.offsetTasks();
+            });
         });
-      });
+    },
+    removeGroup(group) {
+      this.menuLeft.activeMenu = false;
+
+      backendService.removeGroup(group)
+        .then(() => {
+          this.modals.groupModalRemove = false;
+          this.modals.groupMod = null;
+          this.groups = this.groups.filter((element) => element.code !== group.code);
+          delete this.openGroups[group.code];
+          backendService.getTasks()
+            .then((result) => {
+              this.tasks = result;
+              this.setGroups();
+              this.offsetTasks();
+            });
+        });
     },
   },
 };
@@ -1016,10 +1176,17 @@ html {
         }
 
         &__title-group {
-          font-size: 1em;
-          line-height: calc(var(--padding-top-group) - 2px);
+          display: flex;
+          justify-content: space-around;
+          align-items: center;
           background-color: rgba(var(--drag-color), 0.5);
           border-bottom: 2px solid white;
+          font-size: 1em;
+          line-height: calc(var(--padding-top-group) - 2px);
+          span {
+            width: 70%;
+            text-align: left;
+          }
         }
 
         .gantt__menu {
