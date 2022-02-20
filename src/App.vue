@@ -979,6 +979,7 @@ export default {
           this.tasks = result;
           this.modals.groupMod = null;
           this.modals.groupModalMod = false;
+          this.setGroups();
           this.offsetTasks();
         });
       });

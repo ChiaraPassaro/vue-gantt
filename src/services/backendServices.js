@@ -171,6 +171,7 @@ const api = {
     addTask: (task) => {
       const tasksIds = [];
       const groups = [];
+      task.id = 1;
 
       for (const key in Tasks) {
         tasksIds.push(...Tasks[key].tasks.map((element) => element.id));
@@ -180,8 +181,6 @@ const api = {
       if (tasksIds.length > 0) {
         const maxId = Math.max(...tasksIds);
         task.id = maxId + 1;
-      } else {
-        task.id = 1;
       }
 
       if (!Object.keys(Tasks).includes(task.groupCode)) {
