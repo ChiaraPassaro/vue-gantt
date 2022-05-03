@@ -1,0 +1,37 @@
+.btn {
+  display: inline-block;
+  padding: 0.5em;
+  border: 1px solid transparent;
+  border-radius: calc(#{$border-radius} / 2);
+  font-weight: bold;
+  color: $btn-font-color;
+  text-transform: uppercase;
+  cursor: pointer;
+
+  &.btn--primary {
+    background-color: $btn-primary-color;
+    &:hover,
+    &:active,
+    &:focus {
+      color: lighten($btn-font-color, 95%);
+      background-color: darken($btn-primary-color, 20%);
+    }
+  }
+  &.btn--alert {
+    background-color: $btn-alert-color;
+    &:hover,
+    &:active,
+    &:focus {
+      color: lighten($btn-font-color, 95%);
+      background-color: darken($btn-alert-color, 20%);
+    }
+  }
+}
+
+.flex {
+  display: flex;
+  gap: 0.5em;
+}
+.justify-center {
+  justify-content: center;
+}
