@@ -1,15 +1,11 @@
 <script setup lang="ts">
-import RowComponent from "../components/RowComponent.vue";
+import GroupComponent from "@/components/GroupComponent.vue";
 </script>
 
 <template>
   <main>
-    <RowComponent />
+    <GroupComponent />
   </main>
 </template>
 
-<style lang="scss">
-main {
-  height: 36px;
-}
-</style>
+<style lang="scss"></style>

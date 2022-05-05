@@ -1,38 +1,27 @@
 <script setup lang="ts">
 import { reactive } from "vue";
 
-// the generic argument itself passed to defineProps cannot be an imported type
-interface Props {
-  index?: string;
-  width?: number;
+interface Position {
+  width: number;
+  marginLeft?: number;
+}
+
+interface Design {
   height?: number;
   widthHandles?: number;
-  marginLeft?: number;
   minWidth?: number;
-  name?: string;
   fontSize?: number;
   backgroundColor?: string;
   textColor?: string;
   borderRadius?: number;
 }
 
-//Destructuring to set default value
-//https://vuejs.org/guide/typescript/composition-api.html#props-default-values
+interface DragBlock {
+  design: Design;
+  position: Position;
+}
 
-// eslint-disable-next-line vue/no-setup-props-destructure
-const {
-  index = "",
-  width = 36,
-  height = 100,
-  widthHandles = 8,
-  marginLeft = 0,
-  minWidth = 36,
-  name = "Task",
-  fontSize = 1,
-  backgroundColor = "75, 75, 126",
-  textColor = "75, 75, 126",
-  borderRadius = 0.6,
-} = defineProps<Props>();
+defineProps<DragBlock>();
 
 const state = reactive({
   drag: false,
@@ -53,24 +42,21 @@ const state = reactive({
   <div
     ref="task"
     :style="`
-         width:${width}px;
-         --left-label: ${width + marginLeft}px;
-         --margin: ${marginLeft}px;
-         --width-resize: ${widthHandles}px;
-         --height:${height}%;
-         --font-size: ${fontSize}em;
-         --background-color: ${backgroundColor};
-         --text-color: ${textColor};
-         --border-radius:${borderRadius}em
+         width:${position.width}px;
+         --left-label: ${position.width + position.marginLeft}px;
+         --margin: ${position.marginLeft}px;
+         --width-resize: ${design.widthHandles}px;
+         --height:${design.height}%;
+         --font-size: ${design.fontSize}em;
+         --background-color: ${design.backgroundColor};
+         --text-color: ${design.textColor};
+         --border-radius:${design.borderRadius}em
       `"
     class="task task-margin"
   >
     <div class="task__handle task__handle--left"></div>
     <div class="task__drag"></div>
     <div class="task__handle task__handle--right"></div>
-  </div>
-  <div :style="`--margin-name: ${marginLeft + width}px;`" class="task__name">
-    {{ name }}
   </div>
 </template>
 

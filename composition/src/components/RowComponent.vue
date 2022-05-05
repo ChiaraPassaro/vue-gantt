@@ -1,27 +1,47 @@
 <script setup lang="ts">
-import TaskComponent from "@/components/TaskComponent.vue";
-import { reactive } from "vue";
-const state = reactive({
-  task: {
-    width: 36,
-  },
-  row: {
-    height: 36,
-    margin: 0.2,
-  },
-});
+import DragBlock from "../components/DragBlock.vue";
+
+interface Props {
+  taskData: {
+    name: string;
+    width: number;
+    marginLeft: number;
+  };
+  dragBlockSettings: {
+    name?: string;
+    height?: number;
+    widthHandles?: number;
+    minWidth?: number;
+    fontSize?: number;
+    backgroundColor?: string;
+    textColor?: string;
+    borderRadius?: number;
+  };
+  rowSettings: {
+    height: number;
+    margin: number;
+  };
+}
+
+defineProps<Props>();
 </script>
 
 <template>
   <!--Task Row-->
   <div
-    v-for="task in 3"
-    :key="task"
-    class="tasks__row__task"
-    :style="`height: ${state.row.height}px; margin: ${state.row.margin}em 0;`"
+    class="tasks__row"
+    :style="`height: ${rowSettings.height}px; margin: ${rowSettings.margin}em 0;`"
   >
-    <TaskComponent :width="state.task.width"></TaskComponent>
+    <DragBlock :design="dragBlockSettings" :position="taskData"></DragBlock>
+    <div class="task__name">
+      {{ taskData.name }}
+    </div>
     <!--/Task Row-->
   </div>
 </template>
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.tasks__row {
+  display: flex;
+  gap: 1em;
+}
+</style>
