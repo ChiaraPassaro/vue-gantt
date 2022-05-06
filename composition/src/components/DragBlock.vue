@@ -25,7 +25,7 @@ defineProps<DragBlock>();
 
 const state = reactive({
   drag: false,
-  taskDom: null,
+  dragBlockDom: null,
   styles: null,
   widthDom: null,
   handleActive: null,
@@ -40,7 +40,7 @@ const state = reactive({
 
 <template>
   <div
-    ref="task"
+    ref="drag-block"
     :style="`
          width:${position.width}px;
          --left-label: ${position.width + position.marginLeft}px;
@@ -52,11 +52,11 @@ const state = reactive({
          --text-color: ${design.textColor};
          --border-radius:${design.borderRadius}em
       `"
-    class="task task-margin"
+    class="drag-block drag-block-margin"
   >
-    <div class="task__handle task__handle--left"></div>
-    <div class="task__drag"></div>
-    <div class="task__handle task__handle--right"></div>
+    <div class="drag-block__handle drag-block__handle--left"></div>
+    <div class="drag-block__drag"></div>
+    <div class="drag-block__handle drag-block__handle--right"></div>
   </div>
 </template>
 
@@ -74,7 +74,7 @@ const state = reactive({
   --margin-name: 0;
 }
 
-.task {
+.drag-block {
   z-index: 1;
   display: flex;
   justify-content: space-between;
@@ -92,12 +92,12 @@ const state = reactive({
     background-color: rgba(var(--background-color), 1);
     filter: drop-shadow(0.1em 0.1em 0.2em rgba(0, 0, 0, 0.2));
 
-    & + .task__name {
+    & + .drag-block__name {
       display: none;
     }
   }
 
-  &.task-margin {
+  &.drag-block-margin {
     margin-left: var(--margin);
   }
 
@@ -129,12 +129,6 @@ const state = reactive({
     &--right {
       border-left: 1px solid var(--background-color);
     }
-  }
-
-  &__name {
-    z-index: 2;
-    position: absolute;
-    left: calc(var(--margin-name) + 20px);
   }
 }
 </style>

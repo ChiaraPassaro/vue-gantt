@@ -3,7 +3,6 @@ import DragBlock from "../components/DragBlock.vue";
 
 interface Props {
   taskData: {
-    name: string;
     width: number;
     marginLeft: number;
   };
@@ -34,7 +33,7 @@ defineProps<Props>();
   >
     <DragBlock :design="dragBlockSettings" :position="taskData"></DragBlock>
     <div class="task__name">
-      {{ taskData.name }}
+      <slot></slot>
     </div>
     <!--/Task Row-->
   </div>
