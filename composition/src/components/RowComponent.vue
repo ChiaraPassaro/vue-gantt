@@ -2,7 +2,7 @@
 import DragBlock from "../components/DragBlock.vue";
 
 interface Props {
-  taskData: {
+  dragBlockPosition: {
     width: number;
     marginLeft: number;
   };
@@ -31,7 +31,10 @@ defineProps<Props>();
     class="tasks__row"
     :style="`height: ${rowSettings.height}px; margin: ${rowSettings.margin}em 0;`"
   >
-    <DragBlock :design="dragBlockSettings" :position="taskData"></DragBlock>
+    <DragBlock
+      :design="dragBlockSettings"
+      :position="dragBlockPosition"
+    ></DragBlock>
     <div class="task__name">
       <slot></slot>
     </div>

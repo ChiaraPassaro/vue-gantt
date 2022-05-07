@@ -4,6 +4,7 @@ import LexoRank from "@kayron013/lexorank";
 import RowComponent from "../components/RowComponent.vue";
 
 import { reactive } from "vue";
+import type { Task } from "@/assets/types/Task";
 
 const state = reactive({
   groups: [
@@ -98,40 +99,47 @@ const state = reactive({
     },
   ],
 });
+
+const getPositionFromTask = (
+  task: Task
+): { width: number; marginLeft: number } => {
+  const { width, marginLeft } = task;
+  return { width, marginLeft };
+};
 </script>
 
 <template>
-  <GroupComponent
-    v-for="(group, index) in state.groups"
-    :key="index + group.name"
-    :style="`
+  <main v-if="state.groups.length > 0">
+    <GroupComponent
+      v-for="(group, index) in state.groups"
+      :key="`${index}-${group.name}`"
+      :style="`
     --width-group: ${group.width};
     --left-group: ${group.left};
     ${group.open ? '' : 'padding-bottom: 0;'}`"
-    class="tasks__group"
-  >
-    <!-- name groups -->
-    <template v-slot:name
-      ><h4>{{ group.name }}</h4>
-    </template>
-    <!-- /name groups -->
+      class="tasks__group"
+    >
+      <!-- name groups -->
+      <template v-slot:name
+        ><h4>{{ group.name }}</h4>
+      </template>
+      <!-- /name groups -->
 
-    <!-- tasks rows -->
-    <template v-slot:rows>
-      <div v-if="state.tasks.length > 0">
+      <!-- tasks rows -->
+      <template v-slot:rows v-if="state.tasks.length > 0">
         <RowComponent
           v-for="task in state.tasks"
           :rowSettings="state.rowSettings"
           :dragBlockSettings="state.dragBlockSettings"
-          :taskData="task"
+          :dragBlockPosition="getPositionFromTask(task)"
           :key="'task-' + task.id"
         >
           {{ task.name }}
         </RowComponent>
-      </div>
-    </template>
-    <!-- tasks rows -->
-  </GroupComponent>
+      </template>
+      <!-- tasks rows -->
+    </GroupComponent>
+  </main>
 </template>
 
 <style lang="scss"></style>

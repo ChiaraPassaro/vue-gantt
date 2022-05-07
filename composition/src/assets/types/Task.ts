@@ -1,6 +1,6 @@
 export interface Task {
   //data
-  id?: string;
+  id?: number;
   name?: string;
   bucket: number;
   groupCode: string;
@@ -9,4 +9,6 @@ export interface Task {
   endDate: string;
   days: number;
   offset: number;
+  width: number;
+  marginLeft: number;
 }
