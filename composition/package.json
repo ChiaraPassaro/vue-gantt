@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@typescript-eslint/eslint-plugin": "^5.17.0",
+    "luxon": "^2.4.0",
     "pinia": "^2.0.13",
     "vue": "^3.2.33",
     "vue-router": "^4.0.14"
@@ -21,6 +22,7 @@
     "@kayron013/lexorank": "^2.0.0",
     "@rushstack/eslint-patch": "^1.1.0",
     "@types/jsdom": "^16.2.14",
+    "@types/luxon": "^2.3.2",
     "@types/node": "^16.11.27",
     "@vitejs/plugin-vue": "^2.3.1",
     "@vue/eslint-config-prettier": "^7.0.0",

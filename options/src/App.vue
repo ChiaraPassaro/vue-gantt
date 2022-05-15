@@ -803,18 +803,14 @@ export default {
         }
       } else if (handle === 'left') {
         if (vs === 'left') {
-          // eslint-disable-next-line no-param-reassign
           task.startDate = startDate
             .minus({ days: Math.abs(Math.floor(distance)) })
             .toFormat('yyyy-MM-dd');
 
-          // eslint-disable-next-line no-param-reassign
           task.days -= Math.floor(distance);
-          // eslint-disable-next-line no-param-reassign
           task.offset += Math.floor(distance);
 
           if (task.startDate <= this.configDate.startGantt) { // se arrivo al primo giorno del gantt
-            // eslint-disable-next-line no-param-reassign
             task.startDate = this.configDate.startGantt;
           }
         } else if (vs === 'right') {
@@ -823,13 +819,11 @@ export default {
               .plus({ days: Math.abs(Math.ceil(distance)) })
               .toFormat('yyyy-MM-dd') : task.endDate;
 
-          // eslint-disable-next-line no-param-reassign
           task.startDate = startDateNew;
 
           // eslint-disable-next-line max-len,no-param-reassign
           task.days = (startDate.plus({ days: Math.abs(Math.ceil(distance)) }) < endDate) ? task.days - Math.ceil(distance) : 1;
 
-          // eslint-disable-next-line no-param-reassign
           task.offset = (startDate
             .plus({ days: Math.abs(Math.ceil(distance)) })
                   < endDate
@@ -838,6 +832,7 @@ export default {
             : DateTime.fromFormat(task.startDate, 'yyyy-MM-dd').diff(DateTime.fromFormat(`${ganttStartDate}-01`, 'yyyy-MM-dd'), 'days').toObject().days;
         }
       } else if (distance < 0) {
+        console.log('distance < 0');
         // eslint-disable-next-line no-param-reassign
         task.endDate = endDate
           .minus({ days: Math.abs(Math.floor(distance)) })
@@ -847,6 +842,7 @@ export default {
           .minus({ days: Math.abs(Math.floor(distance)) })
           .toFormat('yyyy-MM-dd');
       } else {
+        console.log('distance > 0');
         // eslint-disable-next-line no-param-reassign
         task.endDate = endDate
           .plus({ days: Math.abs(Math.ceil(distance)) })

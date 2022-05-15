@@ -1,7 +1,7 @@
 <template>
   <div
-      ref="task"
-      :style="`
+    ref="task"
+    :style="`
          width:${widthTask}px;
          --left-label: ${widthTask + marginL}px;
          --margin: ${marginL}px;
@@ -12,24 +12,25 @@
          --text-color: ${textColor};
          --border-radius:${borderRadius}em
       `"
-      class="task task-margin"
+    class="task task-margin"
   >
     <div
-        class="task__handle task__handle--left"
-        @mousedown="resize($event, 'left')">
-    </div>
+      class="task__handle task__handle--left"
+      @mousedown="resize($event, 'left')"
+    />
     <div
-        class="task__drag"
-        @mousedown="moveTask($event)">
-    </div>
+      class="task__drag"
+      @mousedown="moveTask($event)"
+    />
     <div
-        class="task__handle task__handle--right"
-        @mousedown="resize($event, 'right')">
-    </div>
-
+      class="task__handle task__handle--right"
+      @mousedown="resize($event, 'right')"
+    />
   </div>
-  <div :style="`--margin-name: ${marginL + widthTask}px;`"
-       class="task__name">
+  <div
+    :style="`--margin-name: ${marginL + widthTask}px;`"
+    class="task__name"
+  >
     {{ name }}
   </div>
 </template>
@@ -37,51 +38,51 @@
 <script>
 
 export default {
-  name: "Task",
+  name: 'Task',
   props: {
     index: {
       type: String,
     },
     width: {
       type: Number,
-      default: 36
+      default: 36,
     },
     height: {
       type: Number,
-      default: 100
+      default: 100,
     },
     widthHandles: {
       type: Number,
-      default: 8
+      default: 8,
     },
     marginLeft: {
       type: Number,
-      default: 0
+      default: 0,
     },
     minWidth: {
       type: Number,
-      default: 36
+      default: 36,
     },
     name: {
       type: String,
-      default: 'Task'
+      default: 'Task',
     },
     fontSize: {
       type: Number,
-      default: 1
+      default: 1,
     },
     backgroundColor: {
       type: String,
-      default: '75, 75, 126'
+      default: '75, 75, 126',
     },
     textColor: {
       type: String,
-      default: '75, 75, 126'
+      default: '75, 75, 126',
     },
     borderRadius: {
       type: Number,
-      default: 0.6
-    }
+      default: 0.6,
+    },
   },
   emits: [
     'handleRightToLeft',
@@ -91,7 +92,7 @@ export default {
     'updateMargin',
     'updateDate',
     'initUpdateTask',
-    'endUpdateTask'
+    'endUpdateTask',
   ],
   data() {
     return {
@@ -105,8 +106,8 @@ export default {
       clickOnBorderRight: false,
       clickOnBorderLeft: false,
       newWidth: 0,
-      newMarginLeft: 0
-    }
+      newMarginLeft: 0,
+    };
   },
   computed: {
     widthTask: {
@@ -114,17 +115,17 @@ export default {
         return this.width;
       },
       set(value) {
-        return value
-      }
+        return value;
+      },
     },
     marginL: {
       get() {
         return this.marginLeft;
       },
       set(value) {
-        return value
-      }
-    }
+        return value;
+      },
+    },
   },
   methods: {
     /**
@@ -150,7 +151,7 @@ export default {
     doMoveTask(e) {
       this.cursorDistance = e.clientX - this.posX;
       this.newMarginLeft = Math.floor(this.marginL + this.cursorDistance);
-      this.taskDom.style.marginLeft = `${this.newMarginLeft}px`; //modify margin left
+      this.taskDom.style.marginLeft = `${this.newMarginLeft}px`; // modify margin left
     },
     /**
      * stopMoveTask
@@ -163,17 +164,20 @@ export default {
         document.documentElement.removeEventListener('mouseup', this.stopMoveTask, true);
         this.$emit('endUpdateTask');
       } else {
-        let decimal = this.newMarginLeft / this.minWidth - Math.floor(this.newMarginLeft / this.minWidth);
+        const decimal = this.newMarginLeft / this.minWidth - Math.floor(this.newMarginLeft / this.minWidth);
 
-        this.$emit('updateMargin',
-            (decimal > 0.5) ? Math.ceil(this.newMarginLeft / this.minWidth) : Math.floor(this.newMarginLeft / this.minWidth)
+        this.$emit(
+          'updateMargin',
+          (decimal > 0.5)
+            ? Math.ceil(this.newMarginLeft / this.minWidth)
+            : Math.floor(this.newMarginLeft / this.minWidth),
         );
 
         this.$emit('updateDate', (decimal > 0.5) ? Math.ceil(this.cursorDistance / this.minWidth) : Math.floor(this.cursorDistance / this.minWidth));
 
         this.$emit('endUpdateTask');
 
-        this.taskDom.style.marginLeft = ''; //modify margin left
+        this.taskDom.style.marginLeft = ''; // modify margin left
 
         document.documentElement.removeEventListener('mousemove', this.doMoveTask, true);
         document.documentElement.removeEventListener('mouseup', this.stopMoveTask, true);
@@ -213,13 +217,13 @@ export default {
 
       if (this.clickOnBorderRight) {
         this.newWidth = this.widthTask + this.cursorDistance;
-        this.taskDom.style.width = `${this.newWidth}px`; //modify width task
-        document.body.style.cursor = 'col-resize'; //modify cursor
+        this.taskDom.style.width = `${this.newWidth}px`; // modify width task
+        document.body.style.cursor = 'col-resize'; // modify cursor
       } else if (this.clickOnBorderLeft) {
         this.newWidth = this.widthTask - this.cursorDistance;
         this.newMarginLeft = this.marginL + this.cursorDistance;
 
-        this.taskDom.style.marginLeft = `${this.newMarginLeft}px`; //modify margin left
+        this.taskDom.style.marginLeft = `${this.newMarginLeft}px`; // modify margin left
         this.taskDom.style.width = `${this.newWidth}px`;
         document.body.style.cursor = 'col-resize';
       }
@@ -231,17 +235,16 @@ export default {
     stopDragTask() {
       this.taskDom.classList.remove('active');
 
-      let distance = this.cursorDistance / this.minWidth;
+      const distance = this.cursorDistance / this.minWidth;
 
       if (this.clickOnBorderRight) {
-        if (this.cursorDistance < 0) { //vado a sinistra
+        if (this.cursorDistance < 0) { // vado a sinistra
           this.$emit('handleRightToLeft', distance);
-        } else {// vado a destra
+        } else { // vado a destra
           this.$emit('handleRightToRight', distance);
         }
-
       } else if (this.clickOnBorderLeft) {
-        if (this.cursorDistance < 0) { //vado a sinistra
+        if (this.cursorDistance < 0) { // vado a sinistra
           this.$emit('handleLeftToLeft', distance);
         } else { // vado a destra
           this.$emit('handleLeftToRight', distance);
@@ -259,11 +262,11 @@ export default {
       this.$nextTick(() => {
         setTimeout(() => {
           this.drag = false;
-        }, 1000)
+        }, 1000);
       });
     },
-  }
-}
+  },
+};
 </script>
 
 <style lang="scss" scoped>

@@ -1,19 +1,24 @@
 <script setup lang="ts">
-import { reactive } from "vue";
+import { computed } from "@vue/reactivity";
+import { nextTick, onMounted, reactive, ref } from "vue";
+type CallbackFunction = {
+  description: string;
+  (arg: unknown): unknown;
+};
 
 interface Position {
   width: number;
-  marginLeft?: number;
+  marginLeft: number;
 }
 
 interface Design {
-  height?: number;
-  widthHandles?: number;
-  minWidth?: number;
-  fontSize?: number;
-  backgroundColor?: string;
-  textColor?: string;
-  borderRadius?: number;
+  height: number;
+  widthHandles: number;
+  minWidth: number;
+  fontSize: number;
+  backgroundColor: string;
+  textColor: string;
+  borderRadius: number;
 }
 
 interface DragBlock {
@@ -21,30 +26,196 @@ interface DragBlock {
   position: Position;
 }
 
-defineProps<DragBlock>();
+const props = defineProps<DragBlock>();
 
-const state = reactive({
+interface State {
+  drag: boolean;
+  styles: CSSStyleDeclaration | null;
+  widthDom: number;
+  handleActive: boolean;
+  cursorDistance: number;
+  posX: number;
+  newWidth: number;
+  newMarginLeft: number;
+  mouseDown: string;
+}
+
+interface EmitHandle {
+  distance: number;
+  handle: string;
+  vs: string;
+}
+
+// dom element accessible only onMounted
+let dragBlock = ref<HTMLElement>(null);
+
+const state = reactive<State>({
   drag: false,
-  dragBlockDom: null,
   styles: null,
-  widthDom: null,
-  handleActive: null,
-  cursorDistance: null,
+  widthDom: 0,
+  handleActive: false,
+  cursorDistance: 0,
   posX: 0,
-  clickOnBorderRight: false,
-  clickOnBorderLeft: false,
   newWidth: 0,
   newMarginLeft: 0,
+  mouseDown: "",
 });
+
+const marginL = computed({
+  get() {
+    console.log("computed marginL", props.position.marginLeft ?? 0);
+
+    return props.position.marginLeft ?? 0;
+  },
+  set(value) {
+    console.log("set computed marginL", value);
+    return value;
+  },
+});
+
+const emit = defineEmits<{
+  (e: "handleRightToLeft", event: EmitHandle): void;
+  (e: "handleRightToRight", event: EmitHandle): void;
+  (e: "handleLeftToLeft", event: EmitHandle): void;
+  (e: "handleLeftToRight", event: EmitHandle): void;
+  (e: "updateMarginLeft", marginLeft: number): void;
+  (e: "startResize"): void;
+  (e: "endResize"): void;
+}>();
+
+const doDragTask = (e: MouseEvent) => {
+  console.log("doDrag");
+  state.drag = true;
+
+  state.cursorDistance = e.clientX - state.posX;
+
+  if (state.mouseDown == "right") {
+    console.log("right");
+
+    state.newWidth = state.widthDom + state.cursorDistance;
+    console.log(state.newWidth);
+
+    console.log("width value", dragBlock.value.style.width);
+    dragBlock.value.style.width = `${state.newWidth}px`; // modify width task
+    console.log("width value after", dragBlock.value.style.width);
+
+    document.body.style.cursor = "col-resize"; // modify cursor
+  } else if (state.mouseDown == "left") {
+    console.log("left");
+    state.newWidth = state.widthDom - state.cursorDistance;
+
+    state.newMarginLeft = marginL.value + state.cursorDistance;
+
+    dragBlock.value.style.marginLeft = `${state.newMarginLeft}px`; // modify margin left
+
+    dragBlock.value.style.width = `${state.newWidth}px`;
+    document.body.style.cursor = "col-resize";
+  }
+};
+
+const stopDragTask = () => {
+  console.log("stopDrag");
+
+  dragBlock.value.classList.remove("active");
+
+  const distance = state.cursorDistance / props.design.minWidth;
+  console.log(distance);
+
+  if (state.mouseDown == "right") {
+    if (state.cursorDistance < 0) {
+      console.log("handleRightToLeft");
+
+      // vado a sinistra
+      emit("handleRightToLeft", {
+        distance,
+        handle: state.mouseDown,
+        vs: "left",
+      });
+    } else {
+      console.log("handleRightToRight");
+
+      // vado a destra
+      emit("handleRightToRight", {
+        distance,
+        handle: state.mouseDown,
+        vs: "right",
+      });
+    }
+  } else if (state.mouseDown == "left") {
+    if (state.cursorDistance < 0) {
+      console.log("handleLeftToLeft");
+
+      // vado a sinistra
+      emit("handleLeftToLeft", {
+        distance,
+        handle: state.mouseDown,
+        vs: "left",
+      });
+    } else {
+      console.log("handleLeftToRight");
+
+      // vado a destra
+      emit("handleLeftToRight", {
+        distance,
+        handle: state.mouseDown,
+        vs: "right",
+      });
+    }
+  }
+
+  dragBlock.value.style.marginLeft = "";
+  document.body.style.cursor = "";
+
+  document.documentElement.removeEventListener("mousemove", doDragTask, true);
+  document.documentElement.removeEventListener("mouseup", stopDragTask, true);
+
+  emit("endResize");
+
+  nextTick(() => {
+    setTimeout(() => {
+      state.drag = false;
+    }, 1000);
+  });
+};
+
+const mouseDown = (handle: string): void => {
+  state.mouseDown = handle;
+};
+
+const resize = (e: MouseEvent) => {
+  emit("startResize");
+  console.log("startDrag, state.drag", state.drag);
+
+  //add active dom element
+  dragBlock.value.classList.add("active");
+  //get styles from that I could know the element's marginLeft
+  state.styles = window.getComputedStyle(dragBlock.value);
+
+  state.widthDom = parseInt(state.styles.width, 10);
+
+  //Send update marginLeft
+  emit("updateMarginLeft", parseInt(state.styles.marginLeft, 10));
+
+  marginL.value = parseInt(state.styles.marginLeft, 10);
+  state.newMarginLeft = marginL.value;
+  state.cursorDistance = 0;
+
+  if (!state.drag) {
+    state.posX = e.clientX;
+    document.documentElement.addEventListener("mousemove", doDragTask, true);
+    document.documentElement.addEventListener("mouseup", stopDragTask, true);
+  }
+};
 </script>
 
 <template>
   <div
-    ref="drag-block"
+    ref="dragBlock"
     :style="`
          width:${position.width}px;
+         minWidth:${design.minWidth}px;
          --left-label: ${position.width + position.marginLeft}px;
-         --margin: ${position.marginLeft}px;
+         --margin: ${marginL}px;
          --width-resize: ${design.widthHandles}px;
          --height:${design.height}%;
          --font-size: ${design.fontSize}em;
@@ -54,9 +225,15 @@ const state = reactive({
       `"
     class="drag-block drag-block-margin"
   >
-    <div class="drag-block__handle drag-block__handle--left"></div>
+    <div
+      class="drag-block__handle drag-block__handle--left"
+      @mousedown="resize($event), mouseDown('left')"
+    ></div>
     <div class="drag-block__drag"></div>
-    <div class="drag-block__handle drag-block__handle--right"></div>
+    <div
+      class="drag-block__handle drag-block__handle--right"
+      @mousedown="resize($event), mouseDown('right')"
+    ></div>
   </div>
 </template>
 
