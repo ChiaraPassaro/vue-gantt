@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import { DateTime } from "luxon";
-
 import GroupComponent from "@/components/GroupComponent.vue";
 import RowComponent from "../components/RowComponent.vue";
 import DragBlock from "../components/DragBlock.vue";
@@ -8,9 +6,9 @@ import { state } from "../stores/testStore";
 
 import {
   getPositionDragBlock,
-  setPositionDragBlog,
   setTaskData,
 } from "../assets/composables/useTasksUtilities";
+
 import { computed } from "@vue/reactivity";
 
 //computed
@@ -47,7 +45,6 @@ const minWidth = computed(() => {
               :design="state.dragBlockSettings"
               :position="getPositionDragBlock(task)"
               :min-width="minWidth"
-              @updateMarginLeft="setPositionDragBlog(task, $event)"
               @handleRightToRight="setTaskData({ task, ...$event })"
               @handleRightToLeft="setTaskData({ task, ...$event })"
               @handleLeftToLeft="setTaskData({ task, ...$event })"

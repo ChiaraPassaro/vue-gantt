@@ -11,24 +11,13 @@ import type { Task } from "../../assets/types/Task";
 const getPositionDragBlock = (
   task: Task
 ): { width: number; marginLeft: number } => {
-  const { width, marginLeft } = task;
+  const { days, offset } = task;
+  const width =
+    state.configStyles.dayWidthEm * days * state.configStyles.defaultPx;
+  const marginLeft =
+    state.configStyles.dayWidthEm * offset * state.configStyles.defaultPx;
+
   return { width, marginLeft };
-};
-
-const setPositionDragBlog = (task: Task, marginLeft: number): number => {
-  console.log("setPositionDragBlog", task, marginLeft);
-
-  task.marginLeft = marginLeft;
-  return marginLeft;
-};
-
-const setWidthDragBlock = (task: Task): void => {
-  console.log("setWidthDragBlock", task.width);
-
-  task.width =
-    state.configStyles.dayWidthEm * task.days * state.configStyles.defaultPx;
-
-  console.log("setWidthDragBlock", task.width);
 };
 
 // const setTaskStartDate = (task: Task, distance: number): void => {};
@@ -46,7 +35,6 @@ const setTaskData = ({
   handle: string;
   vs: string;
 }) => {
-  setWidthDragBlock(task);
   console.log("taskData", task, distance, handle, vs);
 
   //get Start Date Gantt
@@ -139,9 +127,4 @@ const setTaskData = ({
 //   vs: "right",
 // });
 
-export {
-  getPositionDragBlock,
-  setPositionDragBlog,
-  setWidthDragBlock,
-  setTaskData,
-};
+export { getPositionDragBlock, setWidthDragBlock, setTaskData };

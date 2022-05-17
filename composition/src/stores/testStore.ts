@@ -1,7 +1,8 @@
 import { DateTime } from "luxon";
 import LexoRank from "@kayron013/lexorank";
+import { reactive } from "vue";
 
-export const state = {
+export const state = reactive({
   configStyles: { dayWidthEm: 2, defaultPx: 36 },
   configDate: {
     now: DateTime.now(),
@@ -100,4 +101,4 @@ export const state = {
       name: "Lorem Ipsum 5",
     },
   ],
-};
+});
