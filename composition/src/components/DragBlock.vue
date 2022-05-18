@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from "@vue/reactivity";
-import { nextTick, onMounted, reactive, ref } from "vue";
+import { nextTick, reactive, ref } from "vue";
 type CallbackFunction = {
   description: string;
   (arg: unknown): unknown;
@@ -62,13 +62,10 @@ const state = reactive<State>({
 });
 
 const marginL = computed({
-  get() {
-    console.log("computed marginL", props.position.marginLeft ?? 0);
-
+  get(): number {
     return props.position.marginLeft ?? 0;
   },
-  set(value) {
-    console.log("set computed marginL", value);
+  set(value: number) {
     return value;
   },
 });
@@ -84,24 +81,17 @@ const emit = defineEmits<{
 }>();
 
 const doDragTask = (e: MouseEvent) => {
-  console.log("doDrag");
   state.drag = true;
 
   state.cursorDistance = e.clientX - state.posX;
 
   if (state.mouseDown == "right") {
-    console.log("right");
-
     state.newWidth = state.widthDom + state.cursorDistance;
-    console.log(state.newWidth);
 
-    console.log("width value", dragBlock.value.style.width);
     dragBlock.value.style.width = `${state.newWidth}px`; // modify width task
-    console.log("width value after", dragBlock.value.style.width);
 
     document.body.style.cursor = "col-resize"; // modify cursor
   } else if (state.mouseDown == "left") {
-    console.log("left");
     state.newWidth = state.widthDom - state.cursorDistance;
 
     state.newMarginLeft = marginL.value + state.cursorDistance;
@@ -114,17 +104,12 @@ const doDragTask = (e: MouseEvent) => {
 };
 
 const stopDragTask = () => {
-  console.log("stopDrag");
-
   dragBlock.value.classList.remove("active");
 
   const distance = state.cursorDistance / props.design.minWidth;
-  console.log(distance);
 
   if (state.mouseDown == "right") {
     if (state.cursorDistance < 0) {
-      console.log("handleRightToLeft");
-
       // vado a sinistra
       emit("handleRightToLeft", {
         distance,
@@ -132,8 +117,6 @@ const stopDragTask = () => {
         vs: "left",
       });
     } else {
-      console.log("handleRightToRight");
-
       // vado a destra
       emit("handleRightToRight", {
         distance,
@@ -143,8 +126,6 @@ const stopDragTask = () => {
     }
   } else if (state.mouseDown == "left") {
     if (state.cursorDistance < 0) {
-      console.log("handleLeftToLeft");
-
       // vado a sinistra
       emit("handleLeftToLeft", {
         distance,
@@ -152,8 +133,6 @@ const stopDragTask = () => {
         vs: "left",
       });
     } else {
-      console.log("handleLeftToRight");
-
       // vado a destra
       emit("handleLeftToRight", {
         distance,
@@ -184,7 +163,6 @@ const mouseDown = (handle: string): void => {
 
 const resize = (e: MouseEvent) => {
   emit("startResize");
-  console.log("startDrag, state.drag", state.drag);
 
   //add active dom element
   dragBlock.value.classList.add("active");
@@ -213,7 +191,7 @@ const resize = (e: MouseEvent) => {
     ref="dragBlock"
     :style="`
          width:${position.width}px;
-         minWidth:${design.minWidth}px;
+         --min-width:${design.minWidth}px;
          --left-label: ${position.width + position.marginLeft}px;
          --margin: ${marginL}px;
          --width-resize: ${design.widthHandles}px;
@@ -249,6 +227,7 @@ const resize = (e: MouseEvent) => {
   --border-color: grey;
   --left-label: 0;
   --margin-name: 0;
+  --min-width: 0;
 }
 
 .drag-block {
@@ -256,6 +235,7 @@ const resize = (e: MouseEvent) => {
   display: flex;
   justify-content: space-between;
   align-items: stretch;
+  min-width: var(--min-width);
   height: var(--height);
   margin-left: 0;
   background-color: rgba(var(--background-color), 0.8);
