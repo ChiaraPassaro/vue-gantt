@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { DateTime } from "luxon";
 import { onMounted, ref } from "vue";
+import { computed } from "@vue/reactivity";
 import { state } from "../stores/testStore";
-import BackendService from "@/assets/services/backendServices";
+
+/**
+ * Utilities
+ */
+import { DateTime } from "luxon";
 
 import {
   getPositionDragBlock,
@@ -13,17 +17,27 @@ import {
 
 import { getGanttStartDate } from "../assets/composables/useDate";
 
+import BackendService from "@/assets/services/backendServices";
+
+/**
+ * Components
+ */
 import GroupComponent from "@/components/GroupComponent.vue";
 import RowComponent from "../components/RowComponent.vue";
 import DragBlock from "../components/DragBlock.vue";
-import { computed } from "@vue/reactivity";
 
 const backendService = new BackendService();
 
-//reference container for scroll
+/**
+ * DOM
+ */
 const container = ref(null);
 
+/**
+ * Methods
+ */
 const initPositionScroll = () => {
+  //delay scroll position
   setTimeout(() => {
     const ganttStartDate = DateTime.fromFormat(
       state.configDate.startDate,
@@ -45,7 +59,7 @@ const initPositionScroll = () => {
   }, 100);
 };
 
-//position Now
+//Now flag position
 const offsetNow = computed(() => {
   if (Object.keys(state.tasks).length > 0 && state.configDate.startDate) {
     const ganttStartDate = getGanttStartDate();
@@ -62,7 +76,7 @@ const offsetNow = computed(() => {
   return "0px";
 });
 
-//dates to show
+//get dates to show
 const getDatesFromTasks = () => {
   return new Promise((resolve) => {
     backendService
@@ -73,6 +87,9 @@ const getDatesFromTasks = () => {
   });
 };
 
+/**
+ * Lifecycle
+ */
 onMounted(() => {
   state.loading = true;
   // get tasks from backend

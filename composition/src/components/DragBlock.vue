@@ -1,10 +1,6 @@
 <script setup lang="ts">
 import { computed } from "@vue/reactivity";
 import { nextTick, reactive, ref } from "vue";
-type CallbackFunction = {
-  description: string;
-  (arg: unknown): unknown;
-};
 
 interface Position {
   width: number;
@@ -28,6 +24,7 @@ interface DragBlock {
 
 const props = defineProps<DragBlock>();
 
+//component state
 interface State {
   drag: boolean;
   styles: CSSStyleDeclaration | null;
@@ -86,19 +83,23 @@ const doDragTask = (e: MouseEvent) => {
   state.cursorDistance = e.clientX - state.posX;
 
   if (state.mouseDown == "right") {
+    //calculate width block
     state.newWidth = state.widthDom + state.cursorDistance;
+    //change width block
+    dragBlock.value.style.width = `${state.newWidth}px`;
 
-    dragBlock.value.style.width = `${state.newWidth}px`; // modify width task
-
-    document.body.style.cursor = "col-resize"; // modify cursor
+    // modify cursor
+    document.body.style.cursor = "col-resize";
   } else if (state.mouseDown == "left") {
+    //calculate width and marginLeft block
     state.newWidth = state.widthDom - state.cursorDistance;
-
     state.newMarginLeft = marginL.value + state.cursorDistance;
 
-    dragBlock.value.style.marginLeft = `${state.newMarginLeft}px`; // modify margin left
-
+    // change width and marginLeft block
+    dragBlock.value.style.marginLeft = `${state.newMarginLeft}px`;
     dragBlock.value.style.width = `${state.newWidth}px`;
+
+    // modify cursor
     document.body.style.cursor = "col-resize";
   }
 };
@@ -110,14 +111,12 @@ const stopDragTask = () => {
 
   if (state.mouseDown == "right") {
     if (state.cursorDistance < 0) {
-      // vado a sinistra
       emit("handleRightToLeft", {
         distance,
         handle: state.mouseDown,
         vs: "left",
       });
     } else {
-      // vado a destra
       emit("handleRightToRight", {
         distance,
         handle: state.mouseDown,
@@ -126,14 +125,12 @@ const stopDragTask = () => {
     }
   } else if (state.mouseDown == "left") {
     if (state.cursorDistance < 0) {
-      // vado a sinistra
       emit("handleLeftToLeft", {
         distance,
         handle: state.mouseDown,
         vs: "left",
       });
     } else {
-      // vado a destra
       emit("handleLeftToRight", {
         distance,
         handle: state.mouseDown,
@@ -142,6 +139,7 @@ const stopDragTask = () => {
     }
   }
 
+  //reset marginLeft and cursor styles
   dragBlock.value.style.marginLeft = "";
   document.body.style.cursor = "";
 
@@ -150,6 +148,7 @@ const stopDragTask = () => {
 
   emit("endResize");
 
+  //delay change state.drag after component updates
   nextTick(() => {
     setTimeout(() => {
       state.drag = false;
@@ -166,18 +165,20 @@ const resize = (e: MouseEvent) => {
 
   //add active dom element
   dragBlock.value.classList.add("active");
-  //get styles from that I could know the element's marginLeft
+  //get styles
   state.styles = window.getComputedStyle(dragBlock.value);
-
+  //get width
   state.widthDom = parseInt(state.styles.width, 10);
 
   //Send update marginLeft
   emit("updateMarginLeft", parseInt(state.styles.marginLeft, 10));
 
+  //set marginL and cursor distance
   marginL.value = parseInt(state.styles.marginLeft, 10);
   state.newMarginLeft = marginL.value;
   state.cursorDistance = 0;
 
+  //add listeners
   if (!state.drag) {
     state.posX = e.clientX;
     document.documentElement.addEventListener("mousemove", doDragTask, true);
