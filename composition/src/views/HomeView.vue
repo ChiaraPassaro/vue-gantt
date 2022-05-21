@@ -13,6 +13,7 @@ import {
   setTaskData,
   getMinWidthDragBlock,
   setOffsetTasks,
+  setOffset,
 } from "../assets/composables/useTasksUtilities";
 
 import { getGanttStartDate } from "../assets/composables/useDate";
@@ -189,6 +190,14 @@ onMounted(() => {
                       minWidth: getMinWidthDragBlock,
                     }"
                     :position="getPositionDragBlock(task)"
+                    @updateDistance="
+                      setTaskData({
+                        task,
+                        distance: $event,
+                        handle: null,
+                        vs: null,
+                      })
+                    "
                     @handleRightToRight="setTaskData({ task, ...$event })"
                     @handleRightToLeft="setTaskData({ task, ...$event })"
                     @handleLeftToLeft="setTaskData({ task, ...$event })"

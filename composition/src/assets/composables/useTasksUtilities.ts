@@ -38,8 +38,8 @@ const setTaskData = ({
 }: {
   task: Task;
   distance: number;
-  handle: string;
-  vs: string;
+  handle: string | null;
+  vs: string | null;
 }) => {
   const startGantt = getGanttStartDate();
   const startDateTask = getDateFormatted(task.startDate);
@@ -49,6 +49,10 @@ const setTaskData = ({
   const daysFloor = Math.abs(Math.floor(distance));
   const distanceCeil = Math.ceil(distance);
   const distanceFloor = Math.floor(distance);
+
+  //if drag and distance have a decimal we choose ceil or floor
+  const decimal = distance - Math.floor(distance);
+  const days = decimal > 0.5 ? daysCeil : daysFloor;
 
   if (handle === "right") {
     if (vs === "left") {
@@ -105,6 +109,28 @@ const setTaskData = ({
               )
               .toObject().days;
     }
+  } else if (distance < 0) {
+    // when drag left
+    task.startDate = DateTime.fromFormat(task.startDate, "yyyy-MM-dd")
+      .minus({ days })
+      .toFormat("yyyy-MM-dd");
+    task.offset =
+      startDateTask.plus({ days: daysCeil }) < endDateTask
+        ? task.offset + distanceFloor
+        : getDateFormatted(task.startDate)
+            .diff(DateTime.fromFormat(`${startGantt}-01`, "yyyy-MM-dd"), "days")
+            .toObject().days;
+  } else if (distance > 0) {
+    //when drag right
+    task.startDate = DateTime.fromFormat(task.startDate, "yyyy-MM-dd")
+      .plus({ days })
+      .toFormat("yyyy-MM-dd");
+    task.offset =
+      startDateTask.plus({ days: daysCeil }) < endDateTask
+        ? task.offset + distanceCeil
+        : getDateFormatted(task.startDate)
+            .diff(DateTime.fromFormat(`${startGantt}-01`, "yyyy-MM-dd"), "days")
+            .toObject().days;
   }
 
   //  backendService.updateTask(task, task.groupCode);
@@ -150,9 +176,14 @@ const setOffsetTasks = () => {
   }
 };
 
+const setOffset = ({ task, distance }: { task: Task; distance: number }) => {
+  task.offset = distance;
+};
+
 export {
   getPositionDragBlock,
   setTaskData,
   getMinWidthDragBlock,
   setOffsetTasks,
+  setOffset,
 };

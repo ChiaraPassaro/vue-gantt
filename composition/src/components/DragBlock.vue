@@ -44,7 +44,7 @@ interface EmitHandle {
 }
 
 // dom element accessible only onMounted
-let dragBlock = ref<HTMLElement>(null);
+let dragBlock = ref<HTMLElement | null>(null);
 
 const state = reactive<State>({
   drag: false,
@@ -73,11 +73,14 @@ const emit = defineEmits<{
   (e: "handleLeftToLeft", event: EmitHandle): void;
   (e: "handleLeftToRight", event: EmitHandle): void;
   (e: "updateMarginLeft", marginLeft: number): void;
+  (e: "updateDistance", distance: number): void;
   (e: "startResize"): void;
   (e: "endResize"): void;
+  (e: "startMove"): void;
+  (e: "endMove"): void;
 }>();
 
-const doDragTask = (e: MouseEvent) => {
+const doDragBlock = (e: MouseEvent) => {
   state.drag = true;
 
   state.cursorDistance = e.clientX - state.posX;
@@ -104,7 +107,7 @@ const doDragTask = (e: MouseEvent) => {
   }
 };
 
-const stopDragTask = () => {
+const stopDragBlock = () => {
   dragBlock.value.classList.remove("active");
 
   const distance = state.cursorDistance / props.design.minWidth;
@@ -143,8 +146,8 @@ const stopDragTask = () => {
   dragBlock.value.style.marginLeft = "";
   document.body.style.cursor = "";
 
-  document.documentElement.removeEventListener("mousemove", doDragTask, true);
-  document.documentElement.removeEventListener("mouseup", stopDragTask, true);
+  document.documentElement.removeEventListener("mousemove", doDragBlock, true);
+  document.documentElement.removeEventListener("mouseup", stopDragBlock, true);
 
   emit("endResize");
 
@@ -181,8 +184,48 @@ const resize = (e: MouseEvent) => {
   //add listeners
   if (!state.drag) {
     state.posX = e.clientX;
-    document.documentElement.addEventListener("mousemove", doDragTask, true);
-    document.documentElement.addEventListener("mouseup", stopDragTask, true);
+    document.documentElement.addEventListener("mousemove", doDragBlock, true);
+    document.documentElement.addEventListener("mouseup", stopDragBlock, true);
+  }
+};
+
+const doMoveBlock = (e: MouseEvent) => {
+  console.log("doMove");
+
+  state.cursorDistance = e.clientX - state.posX;
+  state.newMarginLeft = Math.floor(marginL.value + state.cursorDistance);
+  dragBlock.value.style.marginLeft = `${state.newMarginLeft}px`; // modify margin left
+};
+
+const stopMoveBlock = (e: MouseEvent) => {
+  console.log("stopMoveBlock");
+
+  dragBlock.value.classList.remove("active");
+  document.documentElement.removeEventListener("mousemove", doMoveBlock, true);
+  document.documentElement.removeEventListener("mouseup", stopMoveBlock, true);
+
+  state.drag = false;
+  if (state.cursorDistance !== 0) {
+    emit("updateDistance", state.cursorDistance / props.design.minWidth);
+
+    emit("endMove");
+  }
+  dragBlock.value.style.marginLeft = ""; // modify margin left
+};
+
+const moveBlock = (e: MouseEvent) => {
+  emit("startMove");
+
+  dragBlock.value?.classList?.add("active");
+  state.styles = window.getComputedStyle(dragBlock.value);
+  marginL.value = parseInt(state.styles.marginLeft, 10);
+  state.cursorDistance = 0;
+
+  //add listeners
+  if (!state.drag) {
+    state.posX = e.clientX;
+    document.documentElement.addEventListener("mousemove", doMoveBlock, true);
+    document.documentElement.addEventListener("mouseup", stopMoveBlock, true);
   }
 };
 </script>
@@ -208,7 +251,7 @@ const resize = (e: MouseEvent) => {
       class="drag-block__handle drag-block__handle--left"
       @mousedown="resize($event), mouseDown('left')"
     ></div>
-    <div class="drag-block__drag"></div>
+    <div class="drag-block__drag" @mousedown="moveBlock($event)"></div>
     <div
       class="drag-block__handle drag-block__handle--right"
       @mousedown="resize($event), mouseDown('right')"
