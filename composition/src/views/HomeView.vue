@@ -1,7 +1,7 @@
+store
 <script setup lang="ts">
 import { onMounted, ref } from "vue";
-import { computed } from "@vue/reactivity";
-import { state } from "../stores/testStore";
+import { useStore } from "@/stores/useStore";
 
 /**
  * Utilities
@@ -11,12 +11,8 @@ import { DateTime } from "luxon";
 import {
   getPositionDragBlock,
   setTaskData,
-  getMinWidthDragBlock,
   setOffsetTasks,
-  setOffset,
 } from "../assets/composables/useTasksUtilities";
-
-import { getGanttStartDate } from "../assets/composables/useDate";
 
 import BackendService from "@/assets/services/backendServices";
 
@@ -27,6 +23,7 @@ import GroupComponent from "@/components/GroupComponent.vue";
 import RowComponent from "../components/RowComponent.vue";
 import DragBlock from "../components/DragBlock.vue";
 
+const store = useStore();
 const backendService = new BackendService();
 
 /**
@@ -40,48 +37,26 @@ const container = ref(null);
 const initPositionScroll = () => {
   //delay scroll position
   setTimeout(() => {
-    const ganttStartDate = DateTime.fromFormat(
-      state.configDate.startDate,
-      "yyyy-MM-dd"
-    )
-      .minus({ months: state.configDate.startGantt })
-      .toFormat("yyyy-MM");
+    const ganttStartDate = store.getGanttStartDate.toFormat("yyyy-MM");
 
     const offset =
-      state.configDate.now
+      store.configDate.now
         .diff(DateTime.fromFormat(`${ganttStartDate}-01`, "yyyy-MM-dd"), "days")
         .toObject().days - 5;
 
     container.value.scrollTo({
       left:
-        offset * state.configStyles.defaultPx * state.configStyles.dayWidthEm,
+        offset * store.configStyles.defaultPx * store.configStyles.dayWidthEm,
       behavior: "smooth",
     });
   }, 100);
 };
 
-//Now flag position
-const offsetNow = computed(() => {
-  if (Object.keys(state.tasks).length > 0 && state.configDate.startDate) {
-    const ganttStartDate = getGanttStartDate();
-    const offset = state.configDate.now
-      .diff(DateTime.fromFormat(`${ganttStartDate}-01`, "yyyy-MM-dd"), "days")
-      .toObject().days;
-
-    return `${
-      state.configStyles.dayWidthEm *
-      Math.floor(offset) *
-      state.configStyles.defaultPx
-    }px`;
-  }
-  return "0px";
-});
-
 //get dates to show
 const getDatesFromTasks = () => {
   return new Promise((resolve) => {
     backendService
-      .getDates(state.configDate.startGantt, state.configDate.endGantt)
+      .getDates(store.configDate.startGantt, store.configDate.endGantt)
       .then((results) => {
         resolve(results);
       });
@@ -92,15 +67,15 @@ const getDatesFromTasks = () => {
  * Lifecycle
  */
 onMounted(() => {
-  state.loading = true;
+  store.loading = true;
   // get tasks from backend
   backendService.getTasks().then((result) => {
-    state.tasks = result;
+    store.tasks = result;
 
     getDatesFromTasks().then((results) => {
-      state.configDate.dates = results.dates;
-      state.configDate.startDate = results.startDate;
-      state.loading = false;
+      store.setDates(results.dates);
+      store.setStartDate(results.startDate);
+      store.setLoading(false);
       setOffsetTasks(); // init offset
       initPositionScroll(); // start scroll
       // set Groups Tasks
@@ -121,29 +96,29 @@ onMounted(() => {
       class="gantt__right"
       :style="`
         --width-day:${
-          state.configStyles.dayWidthEm * state.configStyles.defaultPx
+          store.configStyles.dayWidthEm * store.configStyles.defaultPx
         }px;
-        --row-height: ${state.configStyles.rowHeightRem}rem;
-        --padding-row:${state.configStyles.paddingRow}px;
-        --top-padding:${state.configStyles.paddingRow * 3}px;
-        --drag-color:${state.dragBlockSettings.dragColor};
-        --padding-top-group: ${state.dragBlockSettings.paddingTopGroup}em;
+        --row-height: ${store.configStyles.rowHeightRem}rem;
+        --padding-row:${store.configStyles.paddingRow}px;
+        --top-padding:${store.configStyles.paddingRow * 3}px;
+        --drag-color:${store.dragBlockSettings.dragColor};
+        --padding-top-group: ${store.dragBlockSettings.paddingTopGroup}em;
        `"
     >
       <div
-        v-if="!state.loading"
-        :style="`--margin-now:${offsetNow}`"
+        v-if="!store.loading"
+        :style="`--margin-now:${store.offsetNow}`"
         class="now"
       />
-      <template v-if="state.loading">
+      <template v-if="store.loading">
         <h2 class="loading">Loading</h2>
       </template>
-      <div class="year" v-else-if="Object.keys(state.tasks).length > 0">
+      <div class="year" v-else-if="Object.keys(store.tasks).length > 0">
         <div class="months">
           <!--Date Labels-->
-          <div v-if="state.configDate.dates" class="months__row">
+          <div v-if="store.configDate.dates" class="months__row">
             <div
-              v-for="month in state.configDate.dates"
+              v-for="month in store.configDate.dates"
               :key="month.month + month.year"
               class="month"
             >
@@ -164,7 +139,7 @@ onMounted(() => {
           </div>
           <!-- task groups -->
           <GroupComponent
-            v-for="(group, index) in state.tasks"
+            v-for="(group, index) in store.tasks"
             :key="`${index}-${group.name}`"
             style=""
             class="tasks__group"
@@ -179,15 +154,15 @@ onMounted(() => {
             <template v-slot:rows>
               <RowComponent
                 v-for="task in group.tasks"
-                :rowSettings="state.rowSettings"
+                :rowSettings="store.rowSettings"
                 :key="'task-' + task.id"
               >
                 <template v-slot:content>
                   <!-- single task draggable and resizable -->
                   <DragBlock
                     :design="{
-                      ...state.dragBlockSettings,
-                      minWidth: getMinWidthDragBlock,
+                      ...store.dragBlockSettings,
+                      minWidth: store.getMinWidthDragBlock,
                     }"
                     :position="getPositionDragBlock(task)"
                     @updateDistance="

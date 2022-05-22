@@ -1,10 +1,6 @@
 import LexoRank from "@kayron013/lexorank";
 import { DateTime, Duration, Interval } from "luxon";
-import {
-  compareLuxonDates,
-  getDateFormatted,
-  getGanttStartDate,
-} from "../composables/useDate";
+import { compareLuxonDates } from "../composables/useDate";
 
 const now = DateTime.now();
 // Mock data

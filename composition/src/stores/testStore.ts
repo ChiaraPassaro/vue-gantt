@@ -1,7 +1,7 @@
 import { DateTime } from "luxon";
 import { reactive } from "vue";
 
-export const state = reactive({
+export const store = reactive({
   configStyles: {
     defaultPx: 16,
     dayWidthEm: 3,

@@ -1,35 +1,33 @@
-import { computed } from "@vue/reactivity";
 import { DateTime } from "luxon";
-import { state } from "../../stores/testStore";
+import { useStore } from "@/stores/useStore";
 
-import {
-  getDateFormatted,
-  getGanttStartDate,
-} from "../../assets/composables/useDate";
+import { getDateFormatted } from "../../assets/composables/useDate";
 
 import type { Task } from "../../assets/types/Task";
 
-//computed
-const getMinWidthDragBlock = computed(() => {
-  return state.configStyles.defaultPx * state.configStyles.dayWidthEm;
-});
-
+/**
+ * Get width and marginLeft from data task
+ * @param task
+ * @returns { width, marginLeft }
+ */
 const getPositionDragBlock = (
   task: Task
 ): { width: number; marginLeft: number } => {
+  const store = useStore();
   const { days, offset } = task;
   const width =
-    state.configStyles.dayWidthEm * state.configStyles.defaultPx * days;
+    store.configStyles.dayWidthEm * store.configStyles.defaultPx * days;
   const marginLeft =
-    state.configStyles.dayWidthEm * state.configStyles.defaultPx * offset;
+    store.configStyles.dayWidthEm * store.configStyles.defaultPx * offset;
 
   return { width, marginLeft };
 };
 
-// const setTaskStartDate = (task: Task, distance: number): void => {};
-// const setTaskEndDate = (task: Task, distance: number): void => {};
-// const setTaskDays = (task: Task, distance: number): void => {};
-
+/**
+ *  Set data task: startDate, andDate, width, marginLeft
+ * @param { task, distance, handle, vs }
+ *
+ */
 const setTaskData = ({
   task,
   distance,
@@ -41,21 +39,27 @@ const setTaskData = ({
   handle: string | null;
   vs: string | null;
 }) => {
-  const startGantt = getGanttStartDate();
+  //dates
+  const store = useStore();
+  const startGantt = store.getGanttStartDate;
   const startDateTask = getDateFormatted(task.startDate);
   const endDateTask = getDateFormatted(task.endDate);
+
   //days and distances
   const daysCeil = Math.abs(Math.ceil(distance));
   const daysFloor = Math.abs(Math.floor(distance));
   const distanceCeil = Math.ceil(distance);
   const distanceFloor = Math.floor(distance);
 
-  //if drag and distance have a decimal we choose ceil or floor
+  //when drag and distance have a decimal we choose ceil or floor
   const decimal = distance - Math.floor(distance);
   const days = decimal > 0.5 ? daysCeil : daysFloor;
+  const distanceRound = decimal > 0.5 ? distanceCeil : distanceFloor;
 
   if (handle === "right") {
+    //set days and endDate, startDate doesn't change
     if (vs === "left") {
+      //subtract days
       task.days =
         endDateTask.minus({ days: daysCeil }) > startDateTask
           ? task.days + distanceFloor
@@ -64,27 +68,24 @@ const setTaskData = ({
         endDateTask.minus({ days: daysCeil }) > startDateTask
           ? endDateTask.minus({ days: daysFloor }).toFormat("yyyy-MM-dd")
           : task.startDate;
-      if (getDateFormatted(task.endDate) <= getDateFormatted(startGantt)) {
-        task.startDate = startGantt;
-      }
     } else if (vs === "right") {
+      //add days
       task.days += distanceCeil;
       task.endDate = endDateTask
         .plus({ days: daysCeil })
         .toFormat("yyyy-MM-dd");
     }
   } else if (handle === "left") {
+    //set days and startDateTask, endDate doesn't change
     if (vs === "left") {
+      // go back with the startDate
       task.startDate = startDateTask
         .minus({ days: daysFloor })
         .toFormat("yyyy-MM-dd");
-
+      //add days
       task.days -= distanceFloor;
+      //subtract offSet
       task.offset += distanceFloor;
-
-      if (getDateFormatted(task.startDate) <= getDateFormatted(startGantt)) {
-        task.startDate = startGantt;
-      }
     } else if (vs === "right") {
       const startDateNew =
         startDateTask.plus({ days: daysCeil }) < endDateTask
@@ -111,48 +112,38 @@ const setTaskData = ({
     }
   } else if (distance < 0) {
     // when drag left
-    task.startDate = DateTime.fromFormat(task.startDate, "yyyy-MM-dd")
-      .minus({ days })
-      .toFormat("yyyy-MM-dd");
-    task.offset =
-      startDateTask.plus({ days: daysCeil }) < endDateTask
-        ? task.offset + distanceFloor
-        : getDateFormatted(task.startDate)
-            .diff(DateTime.fromFormat(`${startGantt}-01`, "yyyy-MM-dd"), "days")
-            .toObject().days;
+    task.startDate = startDateTask.minus({ days }).toFormat("yyyy-MM-dd");
+    task.endDate = endDateTask.minus({ days }).toFormat("yyyy-MM-dd");
+    task.offset = task.offset + distanceRound;
   } else if (distance > 0) {
     //when drag right
-    task.startDate = DateTime.fromFormat(task.startDate, "yyyy-MM-dd")
-      .plus({ days })
-      .toFormat("yyyy-MM-dd");
-    task.offset =
-      startDateTask.plus({ days: daysCeil }) < endDateTask
-        ? task.offset + distanceCeil
-        : getDateFormatted(task.startDate)
-            .diff(DateTime.fromFormat(`${startGantt}-01`, "yyyy-MM-dd"), "days")
-            .toObject().days;
+    task.startDate = startDateTask.plus({ days }).toFormat("yyyy-MM-dd");
+    task.endDate = endDateTask.plus({ days }).toFormat("yyyy-MM-dd");
+    task.offset = task.offset + distanceRound;
   }
 
+  console.log("startDate", task.startDate, "offset", task.offset);
   //  backendService.updateTask(task, task.groupCode);
 
   //updateTask DB
 };
 
 const setOffsetTasks = () => {
-  if (Object.keys(state.tasks).length > 0) {
+  const store = useStore();
+  if (Object.keys(store.tasks).length > 0) {
     const ganttStartDate = DateTime.fromFormat(
-      state.configDate.startDate,
+      store.configDate.startDate,
       "yyyy-MM-dd"
     )
-      .minus({ months: state.configDate.startGantt })
+      .minus({ months: store.configDate.startGantt })
       .toFormat("yyyy-MM");
 
     /* for...in loops iterate over the entire prototype chain,
      which is virtually never what you want.
      Use Object.{keys,values,entries}, and iterate over the resulting array.
      */
-    Object.entries(state.tasks).forEach(([key]) => {
-      state.tasks[key].tasks = state.tasks[key].tasks.map((task) => {
+    Object.entries(store.tasks).forEach(([key]) => {
+      store.tasks[key].tasks = store.tasks[key].tasks.map((task) => {
         let { startDate } = task;
         startDate = DateTime.fromFormat(startDate, "yyyy-MM-dd");
 
@@ -176,14 +167,8 @@ const setOffsetTasks = () => {
   }
 };
 
-const setOffset = ({ task, distance }: { task: Task; distance: number }) => {
-  task.offset = distance;
-};
+// const setTaskStartDate = (task: Task, distance: number): void => {};
+// const setTaskEndDate = (task: Task, distance: number): void => {};
+// const setTaskDays = (task: Task, distance: number): void => {};
 
-export {
-  getPositionDragBlock,
-  setTaskData,
-  getMinWidthDragBlock,
-  setOffsetTasks,
-  setOffset,
-};
+export { getPositionDragBlock, setTaskData, setOffsetTasks };
